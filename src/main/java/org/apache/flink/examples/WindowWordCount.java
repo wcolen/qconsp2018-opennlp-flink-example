@@ -27,6 +27,7 @@ public class WindowWordCount {
         lines.flatMap(new LineSplitter())
             .keyBy(0)
             // counts for words every 5 seconds
+//            .window(GlobalWindows.create())
             .timeWindow(Time.of(5, TimeUnit.SECONDS))
             .sum(1);
 

@@ -20,38 +20,47 @@
 	</scm>
 	<properties>
 		<slf4j.version>1.7.12</slf4j.version>
+		<flink.version>0.10.0</flink.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>bintray-rnowling-bigpetstore</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/rnowling/bigpetstore</url>
+		</repository>
+	</repositories>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-core</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-streaming-java</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-runtime</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-table</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-scala</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
 			<artifactId>flink-clients</artifactId>
-			<version>1.0-SNAPSHOT</version>
+			<version>${flink.version}</version>
 		</dependency>
 
 		<dependency>
@@ -75,6 +84,12 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>${slf4j.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.github.rnowling.bigpetstore</groupId>
+			<artifactId>bigpetstore-data-generator</artifactId>
+			<version>0.2.1</version>
 		</dependency>
 
 		<dependency>
