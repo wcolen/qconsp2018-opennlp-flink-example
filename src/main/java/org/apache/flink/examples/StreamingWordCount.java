@@ -30,6 +30,7 @@ public class StreamingWordCount {
     streamingExecutionEnvironment.execute("Streaming Word Count");
   }
 
+  // FlatMap implementation converts each line to multiple <Word, 1> pairs
   public static class LineSplitter implements FlatMapFunction<String, Tuple2<String, Integer>>  {
     @Override
     public void flatMap(String s, Collector<Tuple2<String, Integer>> collector) throws Exception {
