@@ -37,6 +37,7 @@ public class WindowWordCount {
             .countWindow(windowSize, slideSize)
             // and sum up tuple field "1"
             .sum(1)
+            // consider only word counts > 1
             .filter(new WordCountFilter());
 
     counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE);

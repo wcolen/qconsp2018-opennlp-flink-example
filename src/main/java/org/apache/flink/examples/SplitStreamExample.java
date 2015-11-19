@@ -19,7 +19,7 @@ public class SplitStreamExample {
   public static void main(String[] args) throws Exception {
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // Create a DataStream from the streaming input
+    // Create a DataStream from input
     final DataStream<Tuple2<Long, Long>> tuples = getData(env);
 
     // Split the Stream based on the Selector criterion - 'odd' and 'even'
@@ -29,16 +29,17 @@ public class SplitStreamExample {
     DataStream<Tuple2<Long, Long>> odd = out.select("odd");
     DataStream<Tuple2<Long, Long>> even = out.select("even");
 
-    // Write each split stream to a different sink
-    odd.writeAsText("/tmp/odd", FileSystem.WriteMode.OVERWRITE);
-    even.writeAsText("/tmp/even", FileSystem.WriteMode.OVERWRITE);
+    // Write 'odd' split as CSV
+    odd.writeAsCsv("/tmp/sumOdd", FileSystem.WriteMode.OVERWRITE);
+    // Write 'even' split as text
+    even.writeAsText("/tmp/sumEven", FileSystem.WriteMode.OVERWRITE);
 
     // Process the Stream
     env.execute();
   }
 
   /**
-   *
+   * Split the input {@link DataStream} into based on the select criterion
    */
   public static class SplitSelector implements OutputSelector<Tuple2<Long, Long>> {
 
@@ -50,13 +51,20 @@ public class SplitStreamExample {
      }
   }
 
+  /**
+   * Generate Random Tuples of <Long, Long>
+   *
+   * @param env - {@link StreamExecutionEnvironment}
+   * @return {@link DataStream<Tuple2>}
+   */
   public static DataStream<Tuple2<Long, Long>> getData(StreamExecutionEnvironment env) {
-    List<Tuple2<Long, Long>> lst = new ArrayList<>();
+    List<Tuple2<Long, Long>> list = new ArrayList<>();
     Random rnd = new Random();
     for (int i = 0; i < MAX_NUMBER_OF_ELEMENTS; i++) {
       long r = rnd.nextInt(INPUT_MAX);
-      lst.add(new Tuple2<>(r, r + rnd.nextInt(10)));
+      list.add(new Tuple2<>(r, r + rnd.nextInt(10)));
     }
-    return env.fromCollection(lst);
+    // Create a DataStream from the collection
+    return env.fromCollection(list);
   }
 }
