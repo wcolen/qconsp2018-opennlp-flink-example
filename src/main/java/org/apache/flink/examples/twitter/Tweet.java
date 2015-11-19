@@ -4,6 +4,11 @@ import twitter4j.GeoLocation;
 
 import java.util.Date;
 
+/**
+ *
+ * POJO to represent a tweet which is a Tuple5<Name, Text, Date, GeoLocation, Language>
+ *
+ */
 public class Tweet {
 
   private String userName;
@@ -12,10 +17,8 @@ public class Tweet {
   private GeoLocation geoLocation;
   private String language;
 
-  public Tweet() {
-  }
-
-  public Tweet(String userName, String text, Date dateCreated, GeoLocation geoLocation, String language) {
+  public Tweet(String userName, String text, Date dateCreated,
+               GeoLocation geoLocation, String language) {
     this.userName = userName;
     this.text = text;
     this.dateCreated = dateCreated;
@@ -24,43 +27,23 @@ public class Tweet {
   }
 
   public String getUserName() {
-    return userName;
-  }
-
-  public void setUserName(String userName) {
-    this.userName = userName;
+    return this.userName;
   }
 
   public String getText() {
-    return text;
-  }
-
-  public void setText(String text) {
-    this.text = text;
+    return this.text;
   }
 
   public Date getDateCreated() {
-    return dateCreated;
-  }
-
-  public void setDateCreated(Date dateCreated) {
-    this.dateCreated = dateCreated;
+    return this.dateCreated;
   }
 
   public GeoLocation getGeoLocation() {
-    return geoLocation;
-  }
-
-  public void setGeoLocation(GeoLocation geoLocation) {
-    this.geoLocation = geoLocation;
+    return this.geoLocation;
   }
 
   public String getLanguage() {
-    return language;
-  }
-
-  public void setLanguage(String language) {
-    this.language = language;
+    return this.language;
   }
 
   @Override

@@ -1,23 +1,20 @@
 package org.apache.flink.examples.twitter;
 
-import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.FilterQuery;
-import twitter4j.GeoLocation;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Properties;
 
 /**
- * Twitter Feed Source
+ * Twitter Feed Source that extends Flink's {@link RichSourceFunction}
  */
 public class TwitterSource extends RichSourceFunction<Tweet> {
 
@@ -26,10 +23,6 @@ public class TwitterSource extends RichSourceFunction<Tweet> {
   private volatile boolean isRunning = true;
   private String authPath;
   private String[] filterTerms;
-
-  public TwitterSource(String authPath) {
-    this.authPath = authPath;
-  }
 
   public TwitterSource(String authPath, String[] filterTerms) {
     this.authPath = authPath;
@@ -45,10 +38,14 @@ public class TwitterSource extends RichSourceFunction<Tweet> {
 
     // Get an instance of TwitterStream
     TwitterStream twitterStream = new TwitterStreamFactory(builder.build()).getInstance();
+
+    // Add the Twitter Status Listener to TwitterStream
     twitterStream.addListener(new TwitterStreamListener(sourceContext));
 
-    // Filter Query to capture only English language Tweets
+    // Filter Query to capture only English language Tweets with one of the specified filter terms
     FilterQuery filterQuery = new FilterQuery(0, null, filterTerms, null, new String[]{"en"});
+
+    // Add FilterQuery to TwitterStream, this should now only capture tweets that satisfy the filters
     twitterStream.filter(filterQuery);
 
     while (isRunning) {
@@ -60,11 +57,11 @@ public class TwitterSource extends RichSourceFunction<Tweet> {
     // Load the Twitter OAuth credentials
     Properties properties = loadAuthenticationProperties();
 
-    builder.setDebugEnabled(true);
     builder.setIncludeMyRetweetEnabled(true);
     builder.setUserStreamWithFollowingsEnabled(true);
     builder.setPrettyDebugEnabled(true);
 
+    // Set the OAuth credentials
     builder.setOAuthConsumerKey(properties.getProperty("consumerKey"));
     builder.setOAuthConsumerSecret(properties.getProperty("consumerSecret"));
     builder.setOAuthAccessToken(properties.getProperty("accessToken"));
@@ -80,8 +77,8 @@ public class TwitterSource extends RichSourceFunction<Tweet> {
     Properties properties = new Properties();
     try (InputStream input = new FileInputStream(authPath)) {
       properties.load(input);
-    } catch (Exception e) {
-      throw new RuntimeException("Cannot open .properties file: " + authPath, e);
+    } catch (Exception ex) {
+      throw new RuntimeException("Cannot open twitter.properties file: " + authPath, ex);
     }
     return properties;
   }

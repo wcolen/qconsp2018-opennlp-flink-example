@@ -1,15 +1,22 @@
 package org.apache.flink.examples.twitter;
 
-import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
-import twitter4j.GeoLocation;
+
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
 import twitter4j.StatusListener;
 
-import java.util.Date;
-
+/**
+ *
+ * This is a Listener needed by Twitter4J API
+ * Define methods that would be invoked by the Twitter4J API  - especially onStatus().
+ * Flink DataStream API is made aware of the incoming tweets by this Listener which has a handle to
+ * {@link org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext} and
+ * all incoming tweets are then forwarded to the DataStream API
+ * via {@link SourceFunction.SourceContext#collect} method
+ *
+ */
 public class TwitterStreamListener implements StatusListener {
 
   private SourceFunction.SourceContext<Tweet> ctx;
@@ -20,13 +27,14 @@ public class TwitterStreamListener implements StatusListener {
 
   @Override
   public void onStatus(Status status) {
-    Tweet tweet = new Tweet();
-    tweet.setUserName(status.getUser().getName());
-    tweet.setText(status.getText());
-    tweet.setDateCreated(status.getCreatedAt());
-    tweet.setGeoLocation(status.getGeoLocation());
-    tweet.setLanguage(status.getLang());
-    ctx.collect(tweet);
+    ctx.collect(
+        new Tweet(
+            status.getUser().getName(),
+            status.getText(),
+            status.getCreatedAt(),
+            status.getGeoLocation(),
+            status.getLang())
+    );
   }
 
   @Override
