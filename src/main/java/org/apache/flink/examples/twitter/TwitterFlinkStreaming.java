@@ -1,7 +1,6 @@
 package org.apache.flink.examples.twitter;
 
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -10,10 +9,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.GeoLocation;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -68,9 +65,9 @@ public class TwitterFlinkStreaming {
     }
   }
 
-  private static class MyFilterFunction implements FilterFunction<Tuple5<String, String, Date, GeoLocation, String>> {
+  private static class MyFilterFunction implements FilterFunction<Tweet> {
     @Override
-    public boolean filter(Tuple5<String, String, Date, GeoLocation, String> tweet) throws Exception {
+    public boolean filter(Tweet tweet) throws Exception {
       return false;
     }
   }
