@@ -8,6 +8,7 @@ scalastyle-output.xml
 .project
 .version.properties
 filter.properties
+twitter.properties
 logs.zip
 target
 tmp
