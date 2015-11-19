@@ -1,7 +1,9 @@
 package org.apache.flink.examples;
 
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
@@ -24,9 +26,15 @@ public class StreamingWordCount {
     DataStream<Tuple2<String, Integer>> counts =
         lines.flatMap(new LineSplitter())
             .keyBy(0)
-            .sum(1);
+            .sum(1)
+            .filter(new FilterFunction<Tuple2<String, Integer>>() {
+              @Override
+              public boolean filter(Tuple2<String, Integer> tuple2) throws Exception {
+                return tuple2.f1 > 1;
+              }
+            });
 
-    counts.print();
+    counts.writeAsText("/tmp/streamWordCount", FileSystem.WriteMode.OVERWRITE);
 
     // Process the DataStream
     streamingExecutionEnvironment.execute("Streaming Word Count");

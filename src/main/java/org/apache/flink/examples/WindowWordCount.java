@@ -1,7 +1,9 @@
 package org.apache.flink.examples;
 
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.windowing.time.Time;
@@ -14,6 +16,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class WindowWordCount {
 
+  private static int windowSize = 250;
+  private static int slideSize = 150;
+
   public static void main(String[] args) throws Exception {
     // Get an instance of the Streaming Execution Environment
     final StreamExecutionEnvironment env =
@@ -24,13 +29,17 @@ public class WindowWordCount {
         env.readTextFile("src/main/resources/wordcount/input.txt");
 
     DataStream<Tuple2<String, Integer>> counts =
+        // Splits the words up into Tuple2<Word,1>
         lines.flatMap(new LineSplitter())
+            //group by the tuple field "0"
             .keyBy(0)
-            // counts for words every 1 seconds
-            .timeWindow(Time.of(1, TimeUnit.SECONDS))
-            .sum(1);
+            // create a Window of 'windowSize' records and slide window by 'slideSize' records
+            .countWindow(windowSize, slideSize)
+            // and sum up tuple field "1"
+            .sum(1)
+            .filter(new WordCountFilter());
 
-    counts.print();
+    counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE);
 
     // Process the DataStream
     env.execute("Streaming Word Count");
@@ -42,6 +51,13 @@ public class WindowWordCount {
       for (String word : s.split(" ")) {
         collector.collect(new Tuple2<>(word, 1));
       }
+    }
+  }
+
+  public static class WordCountFilter implements FilterFunction<Tuple2<String, Integer>> {
+    @Override
+    public boolean filter(Tuple2<String, Integer> tuple2) throws Exception {
+      return tuple2.f1 > 1;
     }
   }
 }
