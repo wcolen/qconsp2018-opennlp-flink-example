@@ -19,16 +19,15 @@ public class WindowWordCount {
     final StreamExecutionEnvironment env =
         StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // Create a DataStream from the streaming input
+    // Create a DataStream from the text input
     DataStream<String> lines =
-        env.socketTextStream("localhost", 9999);
+        env.readTextFile("src/main/resources/wordcount/input.txt");
 
     DataStream<Tuple2<String, Integer>> counts =
         lines.flatMap(new LineSplitter())
             .keyBy(0)
-            // counts for words every 5 seconds
-//            .window(GlobalWindows.create())
-            .timeWindow(Time.of(5, TimeUnit.SECONDS))
+            // counts for words every 1 seconds
+            .timeWindow(Time.of(1, TimeUnit.SECONDS))
             .sum(1);
 
     counts.print();

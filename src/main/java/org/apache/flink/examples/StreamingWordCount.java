@@ -10,15 +10,17 @@ import org.apache.flink.util.Collector;
  * Flink Streaming WordCount Example
  */
 public class StreamingWordCount {
+
   public static void main(String[] args) throws Exception {
     // Get an instance of the Streaming Execution Environment
     final StreamExecutionEnvironment streamingExecutionEnvironment =
         StreamExecutionEnvironment.getExecutionEnvironment();
 
-    // Create a DataStream from the streaming input
+    // Create a DataStream from the input text
     DataStream<String> lines =
-        streamingExecutionEnvironment.socketTextStream("localhost", 9999);
+        streamingExecutionEnvironment.readTextFile("src/main/resources/wordcount/input.txt");
 
+    // Create a DataStream of <Word, Count>
     DataStream<Tuple2<String, Integer>> counts =
         lines.flatMap(new LineSplitter())
             .keyBy(0)

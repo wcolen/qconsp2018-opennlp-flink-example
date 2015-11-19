@@ -22,7 +22,7 @@ public class SplitStreamTest {
     DataStream<String> odd = out.select("odd");
     DataStream<String> even = out.select("even");
 
-    odd.writeAsText("/tmp/odd", FileSystem.WriteMode.OVERWRITE);
+    odd.writeAsText("/tmp/odd", FileSystem.WriteMode.NO_OVERWRITE);
     even.writeAsText("/tmp/even", FileSystem.WriteMode.OVERWRITE);
 
     env.execute();
@@ -33,11 +33,7 @@ public class SplitStreamTest {
     @Override
     public Iterable<String> select(String s) {
       List<String> list = new ArrayList<>();
-      if (Integer.valueOf(s) % 2 == 0) {
-        list.add("even");
-      } else {
-        list.add("odd");
-      }
+      list.add(Integer.valueOf(s) % 2 == 0 ? "even" : "odd");
       return list;
      }
   }
