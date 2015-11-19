@@ -15,12 +15,12 @@ public class StreamingWordCount {
 
   public static void main(String[] args) throws Exception {
     // Get an instance of the Streaming Execution Environment
-    final StreamExecutionEnvironment streamingExecutionEnvironment =
+    final StreamExecutionEnvironment env =
         StreamExecutionEnvironment.getExecutionEnvironment();
 
     // Create a DataStream from the input text
     DataStream<String> lines =
-        streamingExecutionEnvironment.readTextFile("src/main/resources/wordcount/input.txt");
+        env.readTextFile("src/main/resources/wordcount/input.txt");
 
     // Create a DataStream of <Word, Count>
     DataStream<Tuple2<String, Integer>> counts =
@@ -37,7 +37,7 @@ public class StreamingWordCount {
     counts.writeAsText("/tmp/streamWordCount", FileSystem.WriteMode.OVERWRITE);
 
     // Process the DataStream
-    streamingExecutionEnvironment.execute("Streaming Word Count");
+    env.execute("Streaming Word Count");
   }
 
   // FlatMap implementation converts each line to multiple <Word, 1> pairs
