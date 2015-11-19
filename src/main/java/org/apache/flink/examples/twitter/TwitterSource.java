@@ -19,7 +19,7 @@ import java.util.Properties;
 /**
  * Twitter Feed Source
  */
-public class TwitterSource extends RichSourceFunction<Tuple5<String, String, Date, GeoLocation, String>> {
+public class TwitterSource extends RichSourceFunction<Tweet> {
 
   private static final Logger LOG = LoggerFactory.getLogger(TwitterSource.class);
 
@@ -37,7 +37,7 @@ public class TwitterSource extends RichSourceFunction<Tuple5<String, String, Dat
   }
 
   @Override
-  public void run(SourceContext<Tuple5<String, String, Date, GeoLocation, String>> sourceContext)
+  public void run(SourceContext<Tweet> sourceContext)
       throws Exception {
 
     ConfigurationBuilder builder = new ConfigurationBuilder();

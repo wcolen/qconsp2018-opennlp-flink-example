@@ -12,20 +12,20 @@ import java.util.Date;
 
 public class TwitterStreamListener implements StatusListener {
 
-  private SourceFunction.SourceContext<Tuple5<String, String, Date, GeoLocation, String>> ctx;
+  private SourceFunction.SourceContext<Tweet> ctx;
 
-  public TwitterStreamListener(SourceFunction.SourceContext<Tuple5<String, String, Date, GeoLocation, String>> ctx) {
+  public TwitterStreamListener(SourceFunction.SourceContext<Tweet> ctx) {
     this.ctx = ctx;
   }
 
   @Override
   public void onStatus(Status status) {
-    Tuple5<String, String, Date, GeoLocation, String> tweet = new Tuple5<>();
-    tweet.f0 = status.getUser().getName();
-    tweet.f1 = status.getText();
-    tweet.f2 = status.getCreatedAt();
-    tweet.f3 = status.getGeoLocation();
-    tweet.f4 = status.getLang();
+    Tweet tweet = new Tweet();
+    tweet.setUserName(status.getUser().getName());
+    tweet.setText(status.getText());
+    tweet.setDateCreated(status.getCreatedAt());
+    tweet.setGeoLocation(status.getGeoLocation());
+    tweet.setLanguage(status.getLang());
     ctx.collect(tweet);
   }
 
