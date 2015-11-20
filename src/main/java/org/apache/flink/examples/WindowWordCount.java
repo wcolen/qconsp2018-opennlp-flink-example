@@ -14,7 +14,7 @@ import org.apache.flink.util.Collector;
 public class WindowWordCount {
 
   private static int windowSize = 250;
-  private static int slideSize = 150;
+  private static int slideSize = 10;
 
   public static void main(String[] args) throws Exception {
     // Get an instance of the Streaming Execution Environment
@@ -31,14 +31,16 @@ public class WindowWordCount {
             //group by the tuple field "0"
             .keyBy(0)
             // create a Window of 'windowSize' records and slide window by 'slideSize' records
+            // KeyStream -> WindowStream
             .countWindow(windowSize, slideSize)
             // and sum up tuple field "1"
             .sum(1)
             // consider only word counts > 1
             .filter(new WordCountFilter());
 
-    counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE);
+//    counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE);
 
+    counts.print();
     // Process the DataStream
     env.execute("Streaming Word Count");
   }

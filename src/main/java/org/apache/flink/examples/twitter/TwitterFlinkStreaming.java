@@ -4,6 +4,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.JoinedStreams;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
@@ -29,7 +30,7 @@ public class TwitterFlinkStreaming {
     // create a DataStream from TwitterSource
     DataStream<Tweet> twitterStream =
         env.addSource(new TwitterSource("src/main/resources/twitter.properties",
-            new String[]{"#dcflinkmeetup", "#datascience"}));
+            new String[]{"#worldtoiletday", "#dcflinkmeetup"}));
 
     // Split the Stream based on the Selector criterion - '#DCFlinkMeetup' and others
     SplitStream<Tweet> tweetSplitStream = twitterStream.split(new SplitSelector());
@@ -39,8 +40,13 @@ public class TwitterFlinkStreaming {
     DataStream<Tweet> otherTweetStream = tweetSplitStream.select("Others");
 
     // Persist the Split streams as Text to local filesystem, overwrites any previous files that may exist
-    dcFlinkTweetStream.writeAsText("/tmp/DCFlinkTweets", FileSystem.WriteMode.OVERWRITE);
+    dcFlinkTweetStream.writeAsText("/tmp/ToiletTweets", FileSystem.WriteMode.OVERWRITE);
     otherTweetStream.writeAsText("/tmp/OtherTweets", FileSystem.WriteMode.OVERWRITE);
+
+    // Join two different streams
+//    JoinedStreams<Tweet, Tweet> tweetStream = dcFlinkTweetStream.join(otherTweetStream);
+
+    // TODO: Add Tumbling Window Semantics
 
     // Execute the program
     env.execute();

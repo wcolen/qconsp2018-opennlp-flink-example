@@ -7,8 +7,6 @@ import com.github.rnowling.bps.datagenerator.framework.samplers.Sampler;
 import com.github.rnowling.bps.datagenerator.generators.store.StoreSamplerBuilder;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
-import java.util.List;
-
 public class StoreGenerator implements SourceFunction<Store> {
 
   final Sampler<Store> storeSampler;

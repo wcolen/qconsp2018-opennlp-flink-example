@@ -27,6 +27,7 @@ public class StreamingWordCount {
         lines.flatMap(new LineSplitter())
             .keyBy(0)
             .sum(1)
+            // Filter to only emit words with count > 1
             .filter(new FilterFunction<Tuple2<String, Integer>>() {
               @Override
               public boolean filter(Tuple2<String, Integer> tuple2) throws Exception {
