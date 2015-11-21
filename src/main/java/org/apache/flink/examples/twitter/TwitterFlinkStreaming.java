@@ -25,7 +25,7 @@ public class TwitterFlinkStreaming {
   public static void main(String[] args) throws Exception {
 
     // Get an instance of the Streaming Execution Environment
-    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1);
 
     // create a DataStream from TwitterSource
     DataStream<Tweet> twitterStream =
@@ -40,8 +40,8 @@ public class TwitterFlinkStreaming {
     DataStream<Tweet> otherTweetStream = tweetSplitStream.select("Others");
 
     // Persist the Split streams as Text to local filesystem, overwrites any previous files that may exist
-    dcFlinkTweetStream.writeAsText("/tmp/ToiletTweets", FileSystem.WriteMode.OVERWRITE);
-    otherTweetStream.writeAsText("/tmp/OtherTweets", FileSystem.WriteMode.OVERWRITE);
+    dcFlinkTweetStream.writeAsText("/tmp/DCFlinkTweets", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+    otherTweetStream.writeAsText("/tmp/OtherTweets", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
     // Join two different streams
 //    JoinedStreams<Tweet, Tweet> tweetStream = dcFlinkTweetStream.join(otherTweetStream);

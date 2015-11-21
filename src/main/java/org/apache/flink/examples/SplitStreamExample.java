@@ -30,9 +30,9 @@ public class SplitStreamExample {
     DataStream<Tuple2<Long, Long>> even = out.select("even");
 
     // Write 'odd' split as CSV
-    odd.writeAsCsv("/tmp/sumOdd", FileSystem.WriteMode.OVERWRITE);
+    odd.writeAsCsv("/tmp/sumOdd", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
     // Write 'even' split as text
-    even.writeAsText("/tmp/sumEven", FileSystem.WriteMode.OVERWRITE);
+    even.writeAsText("/tmp/sumEven", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
     // Process the Stream
     env.execute();

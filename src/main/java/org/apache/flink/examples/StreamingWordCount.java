@@ -35,7 +35,7 @@ public class StreamingWordCount {
               }
             });
 
-    counts.writeAsText("/tmp/streamWordCount", FileSystem.WriteMode.OVERWRITE);
+    counts.writeAsText("/tmp/streamWordCount", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
     // Process the DataStream
     env.execute("Streaming Word Count");

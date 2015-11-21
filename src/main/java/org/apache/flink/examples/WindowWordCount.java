@@ -38,9 +38,8 @@ public class WindowWordCount {
             // consider only word counts > 1
             .filter(new WordCountFilter());
 
-//    counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE);
+    counts.writeAsText("/tmp/windowFilterCount", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
-    counts.print();
     // Process the DataStream
     env.execute("Streaming Word Count");
   }
