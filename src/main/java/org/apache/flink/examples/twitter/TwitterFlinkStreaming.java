@@ -29,7 +29,8 @@ public class TwitterFlinkStreaming {
 
     // create a DataStream from TwitterSource
     DataStream<Tweet> twitterStream =
-        env.addSource(new TwitterSource("src/main/resources/twitter.properties",
+        env.addSource(new TwitterSource(
+            TwitterFlinkStreaming.class.getResource("/twitter.properties").getFile(),
             new String[]{"#worldtoiletday", "#dcflinkmeetup"}));
 
     // Split the Stream based on the Selector criterion - '#DCFlinkMeetup' and others
