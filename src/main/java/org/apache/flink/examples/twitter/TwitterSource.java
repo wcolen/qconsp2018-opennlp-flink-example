@@ -30,8 +30,7 @@ public class TwitterSource extends RichSourceFunction<Tweet> {
   }
 
   @Override
-  public void run(SourceContext<Tweet> sourceContext)
-      throws Exception {
+  public void run(SourceContext<Tweet> sourceContext) throws Exception {
 
     ConfigurationBuilder builder = new ConfigurationBuilder();
     setUpTwitterConfiguration(builder);
