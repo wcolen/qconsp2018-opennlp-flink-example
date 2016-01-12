@@ -20,7 +20,7 @@
 	</scm>
 	<properties>
 		<slf4j.version>1.7.12</slf4j.version>
-		<flink.version>0.10.0</flink.version>
+		<flink.version>1.0-Snapshot</flink.version>
 	</properties>
 
 	<repositories>
