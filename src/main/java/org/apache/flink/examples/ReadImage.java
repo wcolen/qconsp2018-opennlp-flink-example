@@ -19,7 +19,7 @@ public class ReadImage {
 
   public static void main(String[] args) throws Exception {
 
-    ExecutionEnvironment executionEnvironment = ExecutionEnvironment.getExecutionEnvironment();
+    final ExecutionEnvironment executionEnvironment = ExecutionEnvironment.getExecutionEnvironment();
     executionEnvironment.setParallelism(1);
 
     final BinaryInputFormat<Record> bif = new ImageBinaryInputFormat();
