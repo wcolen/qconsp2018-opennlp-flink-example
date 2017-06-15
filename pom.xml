@@ -52,8 +52,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-wikiedits_2.10</artifactId>
-			<version>${flink.version}</version>
+			<artifactId>flink-connector-elasticsearch5_2.10</artifactId>
+			<version>1.4-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

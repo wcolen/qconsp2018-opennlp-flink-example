@@ -146,8 +146,8 @@ public class OpenNLPMain {
     languageDetectorME = new LanguageDetectorME(new LanguageDetectorModel(
         OpenNLPMain.class.getResource("/opennlp-models/lang-maxent.bin")));
 
-    porSentenceDetector = new SentenceDetectorME(new SentenceModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-sent.bin")));
+//    porSentenceDetector = new SentenceDetectorME(new SentenceModel(
+//        OpenNLPMain.class.getResource("/opennlp-models/por-sent.bin")));
 
     porTokenizer = new TokenizerME(new TokenizerModel(
         OpenNLPMain.class.getResource("/opennlp-models/por-token.bin")));
