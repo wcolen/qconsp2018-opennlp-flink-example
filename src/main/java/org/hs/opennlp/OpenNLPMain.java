@@ -56,10 +56,21 @@ public class OpenNLPMain {
         OpenNLPMain.class.getResource("/input/eng_news_2015_100K-sentences.txt").getFile());
 
     // read german text
+    DataStream<String> germanText =
+        streamExecutionEnvironment.readTextFile(
+            OpenNLPMain.class.getResource("/input/deu_news_2015_30K-sentences.txt").getFile());
 
-    // read english text
 
-    DataStream<String> newsArticles = inputStream.map(new LeipzigParser());
+    // read italian text
+    DataStream<String> italianText =
+        streamExecutionEnvironment.readTextFile(
+            OpenNLPMain.class.getResource("/input/ita_news_2010_30K-sentences.txt").getFile());
+
+    // Merge all streams
+    DataStream<String> mergedStream = inputStream.union(germanText, italianText);
+
+    // Parse the text
+    DataStream<String> newsArticles = mergedStream.map(new LeipzigParser());
 
     SplitStream<String> langStream = newsArticles.split(new LanguageSelector());
 
@@ -108,7 +119,6 @@ public class OpenNLPMain {
   }
 
   private static class LanguageSelector implements OutputSelector<String> {
-
     @Override
     public Iterable<String> select(String s) {
       List<String> list = new ArrayList<>();
@@ -118,7 +128,6 @@ public class OpenNLPMain {
   }
 
   private static class SentenceMapFunction implements MapFunction<String, String[]> {
-
     @Override
     public String[] map(String s) throws Exception {
       return sentenceDetector.sentDetect(s);
