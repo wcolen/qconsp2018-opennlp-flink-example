@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
@@ -83,21 +84,24 @@ public class OpenNLPMain {
     DataStream<String> mergedStream = inputStream.union(portugeseText);
 
     // Parse the text
-    DataStream<String> newsArticles = mergedStream.map(new LeipzigParser());
+    DataStream<Tuple2<String, String>> newsArticles = mergedStream.map(new LeipzigParser());
 
-    SplitStream<String> langStream = newsArticles.split(new LanguageSelector());
+    SplitStream<Tuple2<String, String>> langStream = newsArticles.split(new LanguageSelector());
 
-    DataStream<String> engNewsArticles = langStream.select("eng");
-    DataStream<String[]> engNewsTokenized = engNewsArticles.map(new EngTokenizerMapFunction());
+    DataStream<Tuple2<String, String>> engNewsArticles = langStream.select("eng");
+    DataStream<Tuple2<String, String[]>> engNewsTokenized = engNewsArticles.map(new EngTokenizerMapFunction());
 
     DataStream<POSSample> engNewsPOS = engNewsTokenized.map(new EngPOSTaggerMapFunction());
     DataStream<NameSample> engNewsNamedEntities = engNewsTokenized.map(new EngNameFinderMapFunction());
 
-    DataStream<String> porNewsArticles = langStream.select("por");
-    DataStream<String[]> porNewsTokenized = porNewsArticles.map(new PorTokenizerMapFunction());
+    DataStream<Tuple2<String, String>> porNewsArticles = langStream.select("por");
+    DataStream<Tuple2<String, String[]>> porNewsTokenized = porNewsArticles.map(new PorTokenizerMapFunction());
 
     DataStream<POSSample> porNewsPOS = porNewsTokenized.map(new PorPOSTaggerMapFunction());
     DataStream<NameSample> porNewsNamedEntities = porNewsTokenized.map(new PorNameFinderMapFunction());
+
+
+    
 
     engNewsPOS.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
 
@@ -139,66 +143,69 @@ public class OpenNLPMain {
         OpenNLPMain.class.getResource("/opennlp-models/por-ner.bin")));
   }
 
-  private static class LeipzigParser implements MapFunction<String, String> {
+  private static class LeipzigParser implements MapFunction<String, Tuple2<String, String>> {
+
+    private int id = 0;
+
     @Override
-    public String map(String s) throws Exception {
-      return s.substring(s.indexOf('\t') + 1);
+    public Tuple2<String, String> map(String s) throws Exception {
+      return new Tuple2<>(Integer.toString(id++), s.substring(s.indexOf('\t') + 1));
     }
   }
 
-  private static class LanguageSelector implements OutputSelector<String> {
+  private static class LanguageSelector implements OutputSelector<Tuple2<String, String>> {
 
     @Override
-    public Iterable<String> select(String s) {
+    public Iterable<String> select(Tuple2<String, String> s) {
       List<String> list = new ArrayList<>();
-      list.add(languageDetectorME.predictLanguage(s).getLang());
+      list.add(languageDetectorME.predictLanguage(s.f1).getLang());
       return list;
     }
   }
 
-  private static class PorTokenizerMapFunction implements MapFunction<String, String[]> {
+  private static class PorTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
     @Override
-    public String[] map(String s) {
-      return porTokenizer.tokenize(s);
+    public Tuple2<String, String[]> map(Tuple2<String, String> s) {
+      return new Tuple2<>(s.f0, porTokenizer.tokenize(s.f0));
     }
   }
 
-  private static class EngTokenizerMapFunction implements MapFunction<String, String[]> {
+  private static class EngTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
     @Override
-    public String[] map(String s) {
-      return engTokenizer.tokenize(s);
+    public Tuple2<String, String[]> map(Tuple2<String, String> s) {
+      return new Tuple2<>(s.f0, engTokenizer.tokenize(s.f0));
     }
   }
 
-  private static class EngPOSTaggerMapFunction implements MapFunction<String[], POSSample> {
+  private static class EngPOSTaggerMapFunction implements MapFunction<Tuple2<String, String[]>, POSSample> {
     @Override
-    public POSSample map(String[] s) {
-      String[] tags = engPosTagger.tag(s);
-      return new POSSample(s, tags);
+    public POSSample map(Tuple2<String, String[]> s) {
+      String[] tags = engPosTagger.tag(s.f1);
+      return new POSSample(s.f0, s.f1, tags);
     }
   }
 
-  private static class PorPOSTaggerMapFunction implements MapFunction<String[], POSSample> {
+  private static class PorPOSTaggerMapFunction implements MapFunction<Tuple2<String, String[]>, POSSample> {
     @Override
-    public POSSample map(String[] s) {
-      String[] tags = porPosTagger.tag(s);
-      return new POSSample(s, tags);
+    public POSSample map(Tuple2<String, String[]> s) {
+      String[] tags = porPosTagger.tag(s.f1);
+      return new POSSample(s.f0, s.f1, tags);
     }
   }
 
-  private static class EngNameFinderMapFunction implements MapFunction<String[], NameSample> {
+  private static class EngNameFinderMapFunction implements MapFunction<Tuple2<String, String[]>, NameSample> {
     @Override
-    public NameSample map(String[] s) {
-      Span[] names = engNameFinder.find(s);
-      return new NameSample(s, names, true);
+    public NameSample map(Tuple2<String, String[]> s) {
+      Span[] names = engNameFinder.find(s.f1);
+      return new NameSample(s.f0, s.f1, names, null, true);
     }
   }
 
-  private static class PorNameFinderMapFunction implements MapFunction<String[], NameSample> {
+  private static class PorNameFinderMapFunction implements MapFunction<Tuple2<String, String[]>, NameSample> {
     @Override
-    public NameSample map(String[] s) {
-      Span[] names = engNameFinder.find(s);
-      return new NameSample(s, names, true);
+    public NameSample map(Tuple2<String, String[]> s) {
+      Span[] names = engNameFinder.find(s.f1);
+      return new NameSample(s.f0, s.f1, names, null, true);
     }
   }
 }

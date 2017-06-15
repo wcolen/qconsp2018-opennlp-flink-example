@@ -14,14 +14,16 @@ import opennlp.tools.util.InvalidFormatException;
  */
 public class POSSample implements Serializable {
 
+  private String id;
   private List<String> sentence;
 
   private List<String> tags;
 
   private final String[][] additionalContext;
 
-  public POSSample(String[] sentence, String[] tags) {
+  public POSSample(String id, String[] sentence, String[] tags) {
     this(sentence, tags, null);
+    this.id = id;
   }
 
   public POSSample(List<String> sentence, List<String> tags) {
@@ -119,7 +121,7 @@ public class POSSample implements Serializable {
       tags[i] = tokenTags[i].substring(split + 1);
     }
 
-    return new POSSample(sentence, tags);
+    return new POSSample("id", sentence, tags);
   }
 
   @Override
