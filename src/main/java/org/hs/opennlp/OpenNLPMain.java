@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
@@ -24,7 +25,6 @@ import opennlp.tools.namefind.NameSample;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
-import opennlp.tools.postag.POSSample;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -59,6 +59,12 @@ public class OpenNLPMain {
     // Get an instance of the Streaming Execution Environment
     final StreamExecutionEnvironment streamExecutionEnvironment =
         StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1);
+
+    streamExecutionEnvironment.getConfig()
+        .registerTypeWithKryoSerializer(POSSample.class, JavaSerializer.class);
+
+    streamExecutionEnvironment.getConfig()
+        .registerTypeWithKryoSerializer(NameSample.class, JavaSerializer.class);
 
     ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
