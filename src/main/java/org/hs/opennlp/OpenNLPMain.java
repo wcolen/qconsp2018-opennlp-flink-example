@@ -38,12 +38,18 @@ public class OpenNLPMain {
 
   String modelsDir = "opennlp-models";
 
-  private static SentenceDetectorME sentenceDetector = null;
-  private static TokenizerME tokenizer = null;
-  private static POSTaggerME posTagger = null;
-  private static ChunkerME chunker = null;
+  private static SentenceDetectorME engSentenceDetector = null;
+  private static TokenizerME engTokenizer = null;
+  private static POSTaggerME engPosTagger = null;
+  private static ChunkerME engChunker = null;
   private static LanguageDetectorME languageDetectorME = null;
-  private static TokenNameFinder nameFinder = null;
+  private static TokenNameFinder engNameFinder = null;
+
+  private static SentenceDetectorME porSentenceDetector = null;
+  private static TokenizerME porTokenizer = null;
+  private static POSTaggerME porPosTagger = null;
+  private static ChunkerME porChunker = null;
+  private static TokenNameFinder porNameFinder = null;
 
   public static void main(String[] args) throws Exception {
 
@@ -63,18 +69,12 @@ public class OpenNLPMain {
         OpenNLPMain.class.getResource("/input/eng_news_2015_100K-sentences.txt").getFile());
 
     // read german text
-    DataStream<String> germanText =
+    DataStream<String> portugeseText =
         streamExecutionEnvironment.readTextFile(
-            OpenNLPMain.class.getResource("/input/deu_news_2015_30K-sentences.txt").getFile());
-
-
-    // read italian text
-    DataStream<String> italianText =
-        streamExecutionEnvironment.readTextFile(
-            OpenNLPMain.class.getResource("/input/ita_news_2010_30K-sentences.txt").getFile());
+            OpenNLPMain.class.getResource("/input/por_br_newscrawl_2011_100K-sentences.txt").getFile());
 
     // Merge all streams
-    DataStream<String> mergedStream = inputStream.union(germanText, italianText);
+    DataStream<String> mergedStream = inputStream.union(portugeseText);
 
     // Parse the text
     DataStream<String> newsArticles = mergedStream.map(new LeipzigParser());
@@ -82,16 +82,16 @@ public class OpenNLPMain {
     SplitStream<String> langStream = newsArticles.split(new LanguageSelector());
 
     DataStream<String> engNewsArticles = langStream.select("eng");
-    DataStream<String[]> engNewsTokenized = engNewsArticles.map(new TokenizerMapFunction());
+    DataStream<String[]> engNewsTokenized = engNewsArticles.map(new EngTokenizerMapFunction());
 
-    DataStream<POSSample> engNewsPOS = engNewsTokenized.map(new POSTaggerMapFunction());
-    DataStream<NameSample> engNewsNamedEntities = engNewsTokenized.map(new NameFinderMapFunction());
+    DataStream<POSSample> engNewsPOS = engNewsTokenized.map(new EngPOSTaggerMapFunction());
+    DataStream<NameSample> engNewsNamedEntities = engNewsTokenized.map(new EngNameFinderMapFunction());
 
+    DataStream<String> porNewsArticles = langStream.select("por");
+    DataStream<String[]> porNewsTokenized = porNewsArticles.map(new PorTokenizerMapFunction());
 
-
-    DataStream<String> deuNewsArticles = langStream.select("deu");
-
-    DataStream<String> itaNewsArticles = langStream.select("ita");
+    DataStream<POSSample> porNewsPOS = porNewsTokenized.map(new PorPOSTaggerMapFunction());
+    DataStream<NameSample> porNewsNamedEntities = porNewsTokenized.map(new PorNameFinderMapFunction());
 
     engNewsPOS.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
 
@@ -99,23 +99,38 @@ public class OpenNLPMain {
   }
 
   private void initializeModels() throws IOException {
-    sentenceDetector = new SentenceDetectorME(new SentenceModel(
+    engSentenceDetector = new SentenceDetectorME(new SentenceModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-sent.bin")));
 
-    tokenizer = new TokenizerME(new TokenizerModel(
+    engTokenizer = new TokenizerME(new TokenizerModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-token.bin")));
 
-    posTagger = new POSTaggerME(new POSModel(
+    engPosTagger = new POSTaggerME(new POSModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-pos-maxent.bin")));
 
-    chunker = new ChunkerME(new ChunkerModel(
+    engChunker = new ChunkerME(new ChunkerModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-chunker.bin")));
 
-    nameFinder = new NameFinderME(new TokenNameFinderModel(
+    engNameFinder = new NameFinderME(new TokenNameFinderModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-ner-person.bin")));
 
     languageDetectorME = new LanguageDetectorME(new LanguageDetectorModel(
         OpenNLPMain.class.getResource("/opennlp-models/lang-maxent.bin")));
+
+    porSentenceDetector = new SentenceDetectorME(new SentenceModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-sent.bin")));
+
+    porTokenizer = new TokenizerME(new TokenizerModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-token.bin")));
+
+    porPosTagger = new POSTaggerME(new POSModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-pos-maxent.bin")));
+
+    porChunker = new ChunkerME(new ChunkerModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-chunker.bin")));
+
+    porNameFinder = new NameFinderME(new TokenNameFinderModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-ner-person.bin")));
   }
 
   private static class LeipzigParser implements MapFunction<String, String> {
@@ -135,28 +150,48 @@ public class OpenNLPMain {
     }
   }
 
-  private static class TokenizerMapFunction implements MapFunction<String, String[]> {
-
+  private static class PorTokenizerMapFunction implements MapFunction<String, String[]> {
     @Override
     public String[] map(String s) {
-      return tokenizer.tokenize(s);
+      return porTokenizer.tokenize(s);
     }
   }
 
-  private static class POSTaggerMapFunction implements MapFunction<String[], POSSample> {
+  private static class EngTokenizerMapFunction implements MapFunction<String, String[]> {
+    @Override
+    public String[] map(String s) {
+      return engTokenizer.tokenize(s);
+    }
+  }
 
+  private static class EngPOSTaggerMapFunction implements MapFunction<String[], POSSample> {
     @Override
     public POSSample map(String[] s) {
-      String[] tags = posTagger.tag(s);
+      String[] tags = engPosTagger.tag(s);
       return new POSSample(s, tags);
     }
   }
 
-  private static class NameFinderMapFunction implements MapFunction<String[], NameSample> {
+  private static class PorPOSTaggerMapFunction implements MapFunction<String[], POSSample> {
+    @Override
+    public POSSample map(String[] s) {
+      String[] tags = porPosTagger.tag(s);
+      return new POSSample(s, tags);
+    }
+  }
 
+  private static class EngNameFinderMapFunction implements MapFunction<String[], NameSample> {
     @Override
     public NameSample map(String[] s) {
-      Span[] names = nameFinder.find(s);
+      Span[] names = engNameFinder.find(s);
+      return new NameSample(s, names, true);
+    }
+  }
+
+  private static class PorNameFinderMapFunction implements MapFunction<String[], NameSample> {
+    @Override
+    public NameSample map(String[] s) {
+      Span[] names = engNameFinder.find(s);
       return new NameSample(s, names, true);
     }
   }
