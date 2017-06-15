@@ -19,7 +19,9 @@ import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.LanguageDetectorME;
 import opennlp.tools.langdetect.LanguageDetectorModel;
+import opennlp.tools.namefind.NameSample;
 import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSSample;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -45,7 +47,7 @@ public class OpenNLPMain {
 
     // Get an instance of the Streaming Execution Environment
     final StreamExecutionEnvironment streamExecutionEnvironment =
-        StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1);
 
     ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
@@ -75,18 +77,16 @@ public class OpenNLPMain {
     SplitStream<String> langStream = newsArticles.split(new LanguageSelector());
 
     DataStream<String> engNewsArticles = langStream.select("eng");
+    DataStream<String[]> engNewsTokenized = engNewsArticles.map(new TokenizerMapFunction());
+
+    DataStream<POSSample> engNewsPOS = engNewsTokenized.map(new POSTaggerMapFunction());
+    DataStream<NameSample> engNewsNamedEntities = engNewsTokenized.map(new NameFinderMapFunction());
+
+
 
     DataStream<String> deuNewsArticles = langStream.select("deu");
 
     DataStream<String> itaNewsArticles = langStream.select("ita");
-
-
-
-//     DataStream<String[]> sentences = engLangStream.map(new SentenceMapFunction());
-
-
-   // sentences.writeAsText("/Users/smarthi/bbuzz/src/main/resources/sentences.txt", FileSystem.WriteMode.OVERWRITE);
-
 
     engNewsArticles.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
 
@@ -119,6 +119,7 @@ public class OpenNLPMain {
   }
 
   private static class LanguageSelector implements OutputSelector<String> {
+
     @Override
     public Iterable<String> select(String s) {
       List<String> list = new ArrayList<>();
@@ -127,10 +128,28 @@ public class OpenNLPMain {
     }
   }
 
-  private static class SentenceMapFunction implements MapFunction<String, String[]> {
+  private static class TokenizerMapFunction implements MapFunction<String, String[]> {
+
     @Override
     public String[] map(String s) throws Exception {
-      return sentenceDetector.sentDetect(s);
+      return tokenizer.tokenize(s);
+    }
+  }
+
+  private static class POSTaggerMapFunction implements MapFunction<String[], POSSample> {
+
+    @Override
+    public POSSample map(String[] s) throws Exception {
+      String[] tags = posTagger.tag(s);
+      return new POSSample(s, tags);
+    }
+  }
+
+  private static class NameFinderMapFunction implements MapFunction<String[], NameSample> {
+
+    @Override
+    public NameSample map(String[] s) throws Exception {
+      return null;
     }
   }
 }
