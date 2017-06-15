@@ -71,7 +71,7 @@ public class OpenNLPMain {
     // read german text
     DataStream<String> portugeseText =
         streamExecutionEnvironment.readTextFile(
-            OpenNLPMain.class.getResource("/input/por_br_newscrawl_2011_100K-sentences.txt").getFile());
+            OpenNLPMain.class.getResource("/input/por-br_newscrawl_2011_100K-sentences.txt").getFile());
 
     // Merge all streams
     DataStream<String> mergedStream = inputStream.union(portugeseText);
