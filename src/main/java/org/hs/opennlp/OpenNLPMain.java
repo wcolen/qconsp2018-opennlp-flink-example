@@ -127,16 +127,16 @@ public class OpenNLPMain {
         OpenNLPMain.class.getResource("/opennlp-models/en-sent.bin")));
 
     porTokenizer = new TokenizerME(new TokenizerModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-token.bin")));
+        OpenNLPMain.class.getResource("/opennlp-models/por-token.bin")));
 
     porPosTagger = new POSTaggerME(new POSModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-pos-maxent.bin")));
+        OpenNLPMain.class.getResource("/opennlp-models/por-pos-maxent.bin")));
 
     porChunker = new ChunkerME(new ChunkerModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-chunker.bin")));
+        OpenNLPMain.class.getResource("/opennlp-models/por-chunker.bin")));
 
     porNameFinder = new NameFinderME(new TokenNameFinderModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-ner-person.bin")));
+        OpenNLPMain.class.getResource("/opennlp-models/por-ner.bin")));
   }
 
   private static class LeipzigParser implements MapFunction<String, String> {
