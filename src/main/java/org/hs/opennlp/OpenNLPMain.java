@@ -4,8 +4,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.flink.api.common.functions.CoGroupFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem;
@@ -14,6 +16,8 @@ import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
+import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +26,6 @@ import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.LanguageDetectorME;
 import opennlp.tools.langdetect.LanguageDetectorModel;
 import opennlp.tools.namefind.NameFinderME;
-import opennlp.tools.namefind.NameSample;
 import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
@@ -78,7 +81,7 @@ public class OpenNLPMain {
     // read german text
     DataStream<String> portugeseText =
         streamExecutionEnvironment.readTextFile(
-            OpenNLPMain.class.getResource("/input/por-br_newscrawl_2011_100K-sentences.txt").getFile());
+                OpenNLPMain.class.getResource("/input/por-br_newscrawl_2011_100K-sentences.txt").getFile());
 
     // Merge all streams
     DataStream<String> mergedStream = inputStream.union(portugeseText);
@@ -100,10 +103,26 @@ public class OpenNLPMain {
     DataStream<POSSample> porNewsPOS = porNewsTokenized.map(new PorPOSTaggerMapFunction());
     DataStream<NameSample> porNewsNamedEntities = porNewsTokenized.map(new PorNameFinderMapFunction());
 
+    // set1.coGroup(set2).where(<key-definition>).equalTo(<key-definition>).with(new MyCoGroupFunction());
 
-    
+    DataStream<Tuple3<String, POSSample, NameSample>> porNewsEnriched = porNewsPOS.coGroup(porNewsNamedEntities)
+            .where(posSample -> posSample.getId())
+            .equalTo(nameSample -> nameSample.getId())
+            .window(GlobalWindows.create())
+            .apply(new CoGroupFunction<POSSample, NameSample, Tuple3<String, POSSample, NameSample>>() {
 
-    engNewsPOS.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
+              @Override
+              public void coGroup(Iterable<POSSample> iterable, Iterable<NameSample> iterable1, Collector<Tuple3<String, POSSample, NameSample>> collector) throws Exception {
+
+                POSSample posSample = iterable.iterator().next();
+                NameSample nameSample = iterable1.iterator().next();
+
+                collector.collect(new Tuple3<>(posSample.getId(), posSample, nameSample));
+              }
+            });
+
+
+    porNewsEnriched.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
 
     streamExecutionEnvironment.execute();
   }

@@ -56,6 +56,10 @@ public class POSSample implements Serializable {
     this(Arrays.asList(sentence), Arrays.asList(tags), additionalContext);
   }
 
+  public String getId() {
+    return id;
+  }
+
   private void checkArguments() {
     if (sentence.size() != tags.size()) {
       throw new IllegalArgumentException(
