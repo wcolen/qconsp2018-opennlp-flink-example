@@ -19,7 +19,10 @@ import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.LanguageDetectorME;
 import opennlp.tools.langdetect.LanguageDetectorModel;
+import opennlp.tools.namefind.NameFinderME;
 import opennlp.tools.namefind.NameSample;
+import opennlp.tools.namefind.TokenNameFinder;
+import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSSample;
 import opennlp.tools.postag.POSTaggerME;
@@ -27,6 +30,7 @@ import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
+import opennlp.tools.util.Span;
 
 public class OpenNLPMain {
 
@@ -39,6 +43,7 @@ public class OpenNLPMain {
   private static POSTaggerME posTagger = null;
   private static ChunkerME chunker = null;
   private static LanguageDetectorME languageDetectorME = null;
+  private static TokenNameFinder nameFinder = null;
 
   public static void main(String[] args) throws Exception {
 
@@ -88,10 +93,9 @@ public class OpenNLPMain {
 
     DataStream<String> itaNewsArticles = langStream.select("ita");
 
-    engNewsArticles.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
+    engNewsPOS.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
 
     streamExecutionEnvironment.execute();
-
   }
 
   private void initializeModels() throws IOException {
@@ -106,6 +110,9 @@ public class OpenNLPMain {
 
     chunker = new ChunkerME(new ChunkerModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-chunker.bin")));
+
+    nameFinder = new NameFinderME(new TokenNameFinderModel(
+        OpenNLPMain.class.getResource("/opennlp-models/en-ner-person.bin")));
 
     languageDetectorME = new LanguageDetectorME(new LanguageDetectorModel(
         OpenNLPMain.class.getResource("/opennlp-models/lang-maxent.bin")));
@@ -131,7 +138,7 @@ public class OpenNLPMain {
   private static class TokenizerMapFunction implements MapFunction<String, String[]> {
 
     @Override
-    public String[] map(String s) throws Exception {
+    public String[] map(String s) {
       return tokenizer.tokenize(s);
     }
   }
@@ -139,7 +146,7 @@ public class OpenNLPMain {
   private static class POSTaggerMapFunction implements MapFunction<String[], POSSample> {
 
     @Override
-    public POSSample map(String[] s) throws Exception {
+    public POSSample map(String[] s) {
       String[] tags = posTagger.tag(s);
       return new POSSample(s, tags);
     }
@@ -148,8 +155,9 @@ public class OpenNLPMain {
   private static class NameFinderMapFunction implements MapFunction<String[], NameSample> {
 
     @Override
-    public NameSample map(String[] s) throws Exception {
-      return null;
+    public NameSample map(String[] s) {
+      Span[] names = nameFinder.find(s);
+      return new NameSample(s, names, true);
     }
   }
 }
