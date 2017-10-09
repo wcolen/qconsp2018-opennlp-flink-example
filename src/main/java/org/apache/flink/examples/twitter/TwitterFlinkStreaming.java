@@ -29,18 +29,18 @@ public class TwitterFlinkStreaming {
     DataStream<Tweet> twitterStream =
         env.addSource(new TwitterSource(
             TwitterFlinkStreaming.class.getResource("/twitter.properties").getFile(),
-            new String[]{"#apacheBigData", "#CanadaWHS"}));
+            new String[]{"#MondayMotivation", "#ColumbusDay"}));
 
     // Split the Stream based on the Selector criterion - '#DCFlinkMeetup' and others
     SplitStream<Tweet> tweetSplitStream = twitterStream.split(new SplitSelector());
 
     DataStream<Tweet> dcFlinkTweetStream = tweetSplitStream.select("apacheBigData");
 
-    DataStream<Tweet> otherTweetStream = tweetSplitStream.select("CanadaWHS");
+    DataStream<Tweet> otherTweetStream = tweetSplitStream.select("ColumbusDay");
 
     // Persist the Split streams as Text to local filesystem, overwrites any previous files that may exist
-    dcFlinkTweetStream.writeAsText("/tmp/DCFlinkTweets", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
-    otherTweetStream.writeAsText("/tmp/OtherTweets", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+    dcFlinkTweetStream.writeAsText("/tmp/MondayMotivation", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
+    otherTweetStream.writeAsText("/tmp/ColumbusDay", FileSystem.WriteMode.OVERWRITE).setParallelism(1);
 
     // Join two different streams
 //    JoinedStreams<Tweet, Tweet> tweetStream = dcFlinkTweetStream.join(otherTweetStream);
