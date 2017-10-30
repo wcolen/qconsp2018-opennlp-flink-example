@@ -1,15 +1,28 @@
 package org.hs.opennlp;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
+import opennlp.tools.chunker.ChunkerME;
+import opennlp.tools.chunker.ChunkerModel;
+import opennlp.tools.langdetect.LanguageDetectorME;
+import opennlp.tools.langdetect.LanguageDetectorModel;
+import opennlp.tools.namefind.NameFinderME;
+import opennlp.tools.namefind.TokenNameFinder;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.postag.POSTagger;
+import opennlp.tools.postag.POSTaggerME;
+import opennlp.tools.sentdetect.SentenceDetectorME;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.Tokenizer;
+import opennlp.tools.tokenize.TokenizerME;
+import opennlp.tools.tokenize.TokenizerModel;
+import opennlp.tools.util.Span;
 import org.apache.flink.api.common.functions.CoGroupFunction;
 import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
-import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.core.fs.FileSystem;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
@@ -21,20 +34,9 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import opennlp.tools.chunker.ChunkerME;
-import opennlp.tools.chunker.ChunkerModel;
-import opennlp.tools.langdetect.LanguageDetectorME;
-import opennlp.tools.langdetect.LanguageDetectorModel;
-import opennlp.tools.namefind.NameFinderME;
-import opennlp.tools.namefind.TokenNameFinder;
-import opennlp.tools.namefind.TokenNameFinderModel;
-import opennlp.tools.postag.POSModel;
-import opennlp.tools.postag.POSTaggerME;
-import opennlp.tools.sentdetect.SentenceDetectorME;
-import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.TokenizerME;
-import opennlp.tools.tokenize.TokenizerModel;
-import opennlp.tools.util.Span;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OpenNLPMain {
 
@@ -42,18 +44,12 @@ public class OpenNLPMain {
 
   String modelsDir = "opennlp-models";
 
+  // refac to RichMapFunctions
   private static SentenceDetectorME engSentenceDetector = null;
-  private static TokenizerME engTokenizer = null;
-  private static POSTaggerME engPosTagger = null;
   private static ChunkerME engChunker = null;
   private static LanguageDetectorME languageDetectorME = null;
-  private static TokenNameFinder engNameFinder = null;
-
   private static SentenceDetectorME porSentenceDetector = null;
-  private static TokenizerME porTokenizer = null;
-  private static POSTaggerME porPosTagger = null;
   private static ChunkerME porChunker = null;
-  private static TokenNameFinder porNameFinder = null;
 
   public static void main(String[] args) throws Exception {
 
@@ -62,7 +58,7 @@ public class OpenNLPMain {
 
     // Get an instance of the Streaming Execution Environment
     final StreamExecutionEnvironment streamExecutionEnvironment =
-        StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(1);
+        StreamExecutionEnvironment.getExecutionEnvironment().setParallelism(5);
 
     streamExecutionEnvironment.getConfig()
         .registerTypeWithKryoSerializer(POSSample.class, JavaSerializer.class);
@@ -70,7 +66,7 @@ public class OpenNLPMain {
     streamExecutionEnvironment.getConfig()
         .registerTypeWithKryoSerializer(NameSample.class, JavaSerializer.class);
 
-    ParameterTool parameterTool = ParameterTool.fromArgs(args);
+    //ParameterTool parameterTool = ParameterTool.fromArgs(args); not used
 
     streamExecutionEnvironment.setStreamTimeCharacteristic(TimeCharacteristic.IngestionTime);
 
@@ -127,39 +123,20 @@ public class OpenNLPMain {
     streamExecutionEnvironment.execute();
   }
 
+  // refac use RichMapFunctions.open(...)
   private void initializeModels() throws IOException {
     engSentenceDetector = new SentenceDetectorME(new SentenceModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-sent.bin")));
 
-    engTokenizer = new TokenizerME(new TokenizerModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-token.bin")));
-
-    engPosTagger = new POSTaggerME(new POSModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-pos-maxent.bin")));
-
     engChunker = new ChunkerME(new ChunkerModel(
         OpenNLPMain.class.getResource("/opennlp-models/en-chunker.bin")));
-
-    engNameFinder = new NameFinderME(new TokenNameFinderModel(
-        OpenNLPMain.class.getResource("/opennlp-models/en-ner-person.bin")));
 
     languageDetectorME = new LanguageDetectorME(new LanguageDetectorModel(
         OpenNLPMain.class.getResource("/opennlp-models/langdetect-183.bin")));
 
-//    porSentenceDetector = new SentenceDetectorME(new SentenceModel(
-//        OpenNLPMain.class.getResource("/opennlp-models/por-sent.bin")));
-
-    porTokenizer = new TokenizerME(new TokenizerModel(
-        OpenNLPMain.class.getResource("/opennlp-models/por-token.bin")));
-
-    porPosTagger = new POSTaggerME(new POSModel(
-        OpenNLPMain.class.getResource("/opennlp-models/por-pos-maxent.bin")));
-
     porChunker = new ChunkerME(new ChunkerModel(
         OpenNLPMain.class.getResource("/opennlp-models/por-chunker.bin")));
 
-    porNameFinder = new NameFinderME(new TokenNameFinderModel(
-        OpenNLPMain.class.getResource("/opennlp-models/por-ner.bin")));
   }
 
   private static class LeipzigParser implements MapFunction<String, Tuple2<String, String>> {
@@ -182,49 +159,102 @@ public class OpenNLPMain {
     }
   }
 
-  private static class PorTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
+  private static class PorTokenizerMapFunction extends RichMapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
+
+    private transient Tokenizer porTokenizer;
+
     @Override
     public Tuple2<String, String[]> map(Tuple2<String, String> s) {
       return new Tuple2<>(s.f0, porTokenizer.tokenize(s.f1));
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      porTokenizer = new TokenizerME(new TokenizerModel(
+              OpenNLPMain.class.getResource("/opennlp-models/por-token.bin")));
+    }
   }
 
-  private static class EngTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
+  private static class EngTokenizerMapFunction extends RichMapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
+    private transient Tokenizer engTokenizer;
+
     @Override
     public Tuple2<String, String[]> map(Tuple2<String, String> s) {
       return new Tuple2<>(s.f0, engTokenizer.tokenize(s.f1));
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      engTokenizer = new TokenizerME(new TokenizerModel(
+              OpenNLPMain.class.getResource("/opennlp-models/en-token.bin")));
+    }
   }
 
-  private static class EngPOSTaggerMapFunction implements MapFunction<Tuple2<String, String[]>, POSSample> {
+  private static class EngPOSTaggerMapFunction extends RichMapFunction<Tuple2<String, String[]>, POSSample> {
+
+    private transient POSTagger engPosTagger;
+
     @Override
     public POSSample map(Tuple2<String, String[]> s) {
       String[] tags = engPosTagger.tag(s.f1);
       return new POSSample(s.f0, s.f1, tags);
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      engPosTagger = new POSTaggerME(new POSModel(
+              OpenNLPMain.class.getResource("/opennlp-models/en-pos-maxent.bin")));
+    }
   }
 
-  private static class PorPOSTaggerMapFunction implements MapFunction<Tuple2<String, String[]>, POSSample> {
+  private static class PorPOSTaggerMapFunction extends RichMapFunction<Tuple2<String, String[]>, POSSample> {
+
+    private transient POSTagger porPosTagger;
+
     @Override
     public POSSample map(Tuple2<String, String[]> s) {
       String[] tags = porPosTagger.tag(s.f1);
       return new POSSample(s.f0, s.f1, tags);
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      porPosTagger = new POSTaggerME(new POSModel(
+              OpenNLPMain.class.getResource("/opennlp-models/por-pos-maxent.bin")));
+    }
   }
 
-  private static class EngNameFinderMapFunction implements MapFunction<Tuple2<String, String[]>, NameSample> {
+  private static class EngNameFinderMapFunction extends RichMapFunction<Tuple2<String, String[]>, NameSample> {
+
+    private transient TokenNameFinder engNameFinder;
+
     @Override
     public NameSample map(Tuple2<String, String[]> s) {
       Span[] names = engNameFinder.find(s.f1);
       return new NameSample(s.f0, s.f1, names, null, true);
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      engNameFinder = new NameFinderME(new TokenNameFinderModel(
+              EngNameFinderMapFunction.class.getResource("/opennlp-models/en-ner-person.bin")));
+    }
   }
 
-  private static class PorNameFinderMapFunction implements MapFunction<Tuple2<String, String[]>, NameSample> {
+  private static class PorNameFinderMapFunction extends RichMapFunction<Tuple2<String, String[]>, NameSample> {
+
+    private transient TokenNameFinder porNameFinder;
+
     @Override
     public NameSample map(Tuple2<String, String[]> s) {
-      Span[] names = engNameFinder.find(s.f1);
+      Span[] names = porNameFinder.find(s.f1);
       return new NameSample(s.f0, s.f1, names, null, true);
+    }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+      porNameFinder = new NameFinderME(new TokenNameFinderModel(
+              OpenNLPMain.class.getResource("/opennlp-models/por-ner.bin")));
     }
   }
 }
