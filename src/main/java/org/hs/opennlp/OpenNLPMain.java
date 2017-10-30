@@ -185,14 +185,14 @@ public class OpenNLPMain {
   private static class PorTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
     @Override
     public Tuple2<String, String[]> map(Tuple2<String, String> s) {
-      return new Tuple2<>(s.f0, porTokenizer.tokenize(s.f0));
+      return new Tuple2<>(s.f0, porTokenizer.tokenize(s.f1));
     }
   }
 
   private static class EngTokenizerMapFunction implements MapFunction<Tuple2<String, String>, Tuple2<String, String[]>> {
     @Override
     public Tuple2<String, String[]> map(Tuple2<String, String> s) {
-      return new Tuple2<>(s.f0, engTokenizer.tokenize(s.f0));
+      return new Tuple2<>(s.f0, engTokenizer.tokenize(s.f1));
     }
   }
 
