@@ -12,7 +12,7 @@ public class Annotation<T> implements Serializable {
   private final T piggyback;
 
   private Span headline;
-  private Span[] paragraphs;
+  private Span[] sentences;
   private Span[] persons;
   private Span[] pos;
 
@@ -42,14 +42,6 @@ public class Annotation<T> implements Serializable {
     this.headline = headline;
   }
 
-  public Span[] getParagraphs() {
-    return paragraphs;
-  }
-
-  public void setParagraphs(Span[] paragraphs) {
-    this.paragraphs = paragraphs;
-  }
-
   public String getLanguage() {
     return language;
   }
@@ -74,4 +66,11 @@ public class Annotation<T> implements Serializable {
     this.pos = pos;
   }
 
+  public Span[] getSentences() {
+    return sentences;
+  }
+
+  public void setSentences(Span[] sentences) {
+    this.sentences = sentences;
+  }
 }
