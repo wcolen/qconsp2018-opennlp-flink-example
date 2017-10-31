@@ -41,7 +41,8 @@ public class NewsPipeline {
 
 
     SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
-        .map(new SentenceDetectorFunction<NewsArticle>("/opennlp-models/en-sent.bin"));
+        .map(new SentenceDetectorFunction<>("/opennlp-models/en-sent.bin"))
+        .map(new TokenizerFunction<>("/opennlp-models/en-token.bin"));
 
 
     /*
