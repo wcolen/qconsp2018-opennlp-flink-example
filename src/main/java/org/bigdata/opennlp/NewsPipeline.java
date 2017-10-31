@@ -8,8 +8,15 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
+import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
+import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class NewsPipeline {
 
@@ -26,21 +33,35 @@ public class NewsPipeline {
             StreamExecutionEnvironment.getExecutionEnvironment()
                     .setParallelism(parameterTool.getInt("parallelism", 1));
 
-    DataStream<Annotation<NewsArticle>> articleStream =
+    DataStream<Annotation<NewsArticle>> rawStream =
             env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()), parameterTool.getRequired("file"))
                     .map(new LanguageDetectorFunction<NewsArticle>());
 
-    DataStream<Tuple2<String,Integer>> counts =
-            articleStream.flatMap((FlatMapFunction<Annotation<NewsArticle>, Tuple2<String, Integer>>)
-                    (annotation, collector) -> collector.collect(new Tuple2<>(annotation.getLanguage(), 1)))
-            .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)))
-            .keyBy(0)
-            .sum(1);
+    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
 
-    counts.print();
+
+    SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
+        .map(new SentenceDetectorFunction<NewsArticle>("/opennlp-models/en-sent.bin"));
+
+
+    /*
+    SingleOutputStreamOperator eng2 = articleStream.select("eng", "por").flatMap((FlatMapFunction<Annotation<NewsArticle>, Tuple2<String, Integer>>)
+        (annotation, collector) -> collector.collect(new Tuple2<>(annotation.getLanguage(), 1)))
+        .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)))
+        .keyBy(0)
+        .sum(1);
+    */
+
+    eng.print();
 
     env.execute();
 
   }
 
+  private static class LanguageSelector<T> implements OutputSelector<Annotation<T>> {
+    @Override
+    public Iterable<String> select(Annotation<T> annotation) {
+      return Collections.singletonList(annotation.getLanguage());
+    }
+  }
 }
