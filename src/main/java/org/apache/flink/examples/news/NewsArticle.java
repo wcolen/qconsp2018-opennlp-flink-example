@@ -1,8 +1,9 @@
 package org.apache.flink.examples.news;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class NewsArticle {
+public class NewsArticle implements Serializable {
 
   private String id;
   private String publicationDate;
