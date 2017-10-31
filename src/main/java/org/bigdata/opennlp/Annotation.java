@@ -12,6 +12,7 @@ public class Annotation<T> implements Serializable {
   private final T piggyback;
 
   private Span headline;
+  private Span[] tokens;
   private Span[] sentences;
   private Span[] persons;
   private Span[] pos;
@@ -72,5 +73,13 @@ public class Annotation<T> implements Serializable {
 
   public void setSentences(Span[] sentences) {
     this.sentences = sentences;
+  }
+
+  public Span[] getTokens() {
+    return tokens;
+  }
+
+  public void setTokens(Span[] tokens) {
+    this.tokens = tokens;
   }
 }

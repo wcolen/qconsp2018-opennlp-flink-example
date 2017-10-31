@@ -9,19 +9,19 @@ import org.apache.flink.configuration.Configuration;
 public class POSTaggerFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
 
     private transient POSTagger posTagger;
-    private final String modelPath;
+    private final String model;
 
-    public POSTaggerFunction(final String modelPath) {
-        this.modelPath = modelPath;
+    public POSTaggerFunction(final String model) {
+        this.model = model;
     }
 
     @Override
     public Annotation<T> map(Annotation<T> annotation) throws Exception {
-        return annotation;
+        throw new RuntimeException("missing implementation");
     }
 
     @Override
     public void open(Configuration parameters) throws Exception {
-        posTagger = new POSTaggerME(new POSModel(POSTaggerFunction.class.getResource(modelPath)));
+        posTagger = new POSTaggerME(new POSModel(POSTaggerFunction.class.getResource(model)));
     }
 }
