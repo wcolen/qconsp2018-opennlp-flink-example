@@ -35,7 +35,7 @@ public class NewsPipeline {
 
     DataStream<Annotation<NewsArticle>> rawStream =
             env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()), parameterTool.getRequired("file"))
-                    .map(new LanguageDetectorFunction<NewsArticle>());
+                    .map(new LanguageDetectorFunction<>());
 
     SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
 
