@@ -1,0 +1,82 @@
+DELETE gdpr-entities
+
+DELETE gdpr-documents
+
+PUT gdpr-documents
+{
+  "mappings": {
+
+    "document": {
+
+      "properties": {
+
+        "data": {
+          "type": "text",
+          "analyzer": "danish"
+        },
+        "discoveredAt": {
+          "type": "date"
+        },
+        "tagged": {
+          "type": "text",
+          "index": "false"
+        },
+        "entity": {
+
+          "type": "nested",
+          "properties": {
+            "nameType": { "type": "text" },
+            "value": { "type": "text" }
+          }
+        }
+
+      }
+
+    }
+
+  }
+}
+
+PUT gdpr-entities
+{
+  "mappings": {
+    "entity": {
+      "properties": {
+
+        "discoveredAt": {
+          "type": "date"
+        },
+        "document": {
+          "type": "text"
+        },
+        "nameType": {
+          "type": "keyword"
+        },
+        "value": {
+          "type": "text"
+        }
+
+      }
+    }
+  }
+}
+
+POST gdpr-documents/document/_search/
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+POST gdpr-entities/entity/_search/
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+GET _cat/indices
+
+GET gdpr/_mappings
+

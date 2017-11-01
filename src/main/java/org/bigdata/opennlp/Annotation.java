@@ -85,4 +85,10 @@ public class Annotation<T> implements Serializable {
   public void setTokens(Span[][] tokens) {
     this.tokens = tokens;
   }
+
+  @Override
+  public String toString() {
+    return getLanguage() + " : " + getSofa().substring(getHeadline().getStart(), getHeadline().getEnd());
+
+  }
 }
