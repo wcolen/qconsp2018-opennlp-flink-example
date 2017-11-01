@@ -1,5 +1,32 @@
 package org.hs.opennlp;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.flink.api.common.functions.CoGroupFunction;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.common.functions.RichMapFunction;
+import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.collector.selector.OutputSelector;
+import org.apache.flink.streaming.api.datastream.CoGroupedStreams;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SplitStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
+import org.apache.flink.streaming.api.windowing.triggers.Trigger;
+import org.apache.flink.streaming.api.windowing.triggers.TriggerResult;
+import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
+import org.apache.flink.util.Collector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.langdetect.LanguageDetectorME;
@@ -16,27 +43,6 @@ import opennlp.tools.tokenize.Tokenizer;
 import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
-import org.apache.flink.api.common.functions.CoGroupFunction;
-import org.apache.flink.api.common.functions.MapFunction;
-import org.apache.flink.api.common.functions.RichMapFunction;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.api.java.typeutils.runtime.kryo.JavaSerializer;
-import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.fs.FileSystem;
-import org.apache.flink.streaming.api.TimeCharacteristic;
-import org.apache.flink.streaming.api.collector.selector.OutputSelector;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.SplitStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
-import org.apache.flink.util.Collector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class OpenNLPMain {
 
@@ -93,6 +99,10 @@ public class OpenNLPMain {
     DataStream<POSSample> engNewsPOS = engNewsTokenized.map(new EngPOSTaggerMapFunction());
     DataStream<NameSample> engNewsNamedEntities = engNewsTokenized.map(new EngNameFinderMapFunction());
 
+
+    engNewsNamedEntities.writeAsText("output-eng.txt", FileSystem.WriteMode.OVERWRITE);
+
+
     DataStream<Tuple2<String, String>> porNewsArticles = langStream.select("por");
     DataStream<Tuple2<String, String[]>> porNewsTokenized = porNewsArticles.map(new PorTokenizerMapFunction());
 
@@ -102,9 +112,40 @@ public class OpenNLPMain {
     // set1.coGroup(set2).where(<key-definition>).equalTo(<key-definition>).with(new MyCoGroupFunction());
 
     DataStream<Tuple3<String, POSSample, NameSample>> porNewsEnriched = porNewsPOS.coGroup(porNewsNamedEntities)
-            .where(posSample -> posSample.getId())
-            .equalTo(nameSample -> nameSample.getId())
+            .where(new KeySelector<POSSample, String>() {
+              @Override
+              public String getKey(POSSample posSample) throws Exception {
+                return posSample.getId();
+              }
+            })
+            .equalTo(new KeySelector<NameSample, String>() {
+              @Override
+              public String getKey(NameSample nameSample) throws Exception {
+                return nameSample.getId();
+              }
+            })
             .window(GlobalWindows.create())
+            .trigger(new Trigger<CoGroupedStreams.TaggedUnion<POSSample, NameSample>, GlobalWindow>() {
+              @Override
+              public TriggerResult onElement(CoGroupedStreams.TaggedUnion<POSSample, NameSample> element, long timestamp, GlobalWindow window, TriggerContext ctx) throws Exception {
+                return TriggerResult.FIRE;
+              }
+
+              @Override
+              public TriggerResult onProcessingTime(long time, GlobalWindow window, TriggerContext ctx) throws Exception {
+                return null;
+              }
+
+              @Override
+              public TriggerResult onEventTime(long time, GlobalWindow window, TriggerContext ctx) throws Exception {
+                return null;
+              }
+
+              @Override
+              public void clear(GlobalWindow window, TriggerContext ctx) throws Exception {
+
+              }
+            })
             .apply(new CoGroupFunction<POSSample, NameSample, Tuple3<String, POSSample, NameSample>>() {
 
               @Override
@@ -118,7 +159,7 @@ public class OpenNLPMain {
             });
 
 
-    porNewsEnriched.writeAsText("output.txt", FileSystem.WriteMode.OVERWRITE);
+    porNewsEnriched.writeAsText("output-pos.txt", FileSystem.WriteMode.OVERWRITE);
 
     streamExecutionEnvironment.execute();
   }

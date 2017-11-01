@@ -1,5 +1,7 @@
 package org.bigdata.opennlp;
 
+import java.util.Collections;
+
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -14,9 +16,10 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.TokenizerModel;
 
 public class NewsPipeline {
 
@@ -31,7 +34,7 @@ public class NewsPipeline {
 
     final StreamExecutionEnvironment env =
             StreamExecutionEnvironment.getExecutionEnvironment()
-                    .setParallelism(parameterTool.getInt("parallelism", 1));
+            .setParallelism(parameterTool.getInt("parallelism", 1));
 
     DataStream<Annotation<NewsArticle>> rawStream =
             env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()), parameterTool.getRequired("file"))
@@ -39,21 +42,34 @@ public class NewsPipeline {
 
     SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
 
+    SentenceModel engSentenceModel =
+        new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/en-sent.bin"));
+
+    TokenizerModel engTokenizerModel =
+        new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/en-token.bin"));
 
     SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
-        .map(new SentenceDetectorFunction<>("/opennlp-models/en-sent.bin"))
-        .map(new TokenizerFunction<>("/opennlp-models/en-token.bin"));
+        .map(new SentenceDetectorFunction<>(engSentenceModel))
+        .map(new TokenizerFunction<>(engTokenizerModel));
 
+    POSModel engPosModel = new POSModel(NewsPipeline.class.getResource("/opennlp-models/en-pos-perceptron.bin"));
 
-    /*
-    SingleOutputStreamOperator eng2 = articleStream.select("eng", "por").flatMap((FlatMapFunction<Annotation<NewsArticle>, Tuple2<String, Integer>>)
+    TokenNameFinderModel engNerPersonModel =
+        new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
+
+    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng
+        .map(new POSTaggerFunction<>(engPosModel))
+        .map(new NameFinderFunction<>(engNerPersonModel));
+
+    SingleOutputStreamOperator eng2 = articleStream.flatMap((FlatMapFunction<Annotation<NewsArticle>, Tuple2<String, Integer>>)
         (annotation, collector) -> collector.collect(new Tuple2<>(annotation.getLanguage(), 1)))
         .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)))
         .keyBy(0)
         .sum(1);
-    */
 
-    eng.print();
+    analyzedEng.print();
+
+    //eng.print();
 
     env.execute();
 

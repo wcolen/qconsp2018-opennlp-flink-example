@@ -1,8 +1,8 @@
 package org.bigdata.opennlp;
 
-import opennlp.tools.util.Span;
-
 import java.io.Serializable;
+
+import opennlp.tools.util.Span;
 
 public class Annotation<T> implements Serializable {
 
@@ -12,10 +12,10 @@ public class Annotation<T> implements Serializable {
   private final T piggyback;
 
   private Span headline;
-  private Span[] tokens;
   private Span[] sentences;
-  private Span[] persons;
-  private Span[] pos;
+  private Span[][] tokens;
+  private Span[][] entityMentions;
+  private String[][] pos;
 
   public Annotation(final String id, final String sofa, final T piggyback) {
     this.id = id;
@@ -51,19 +51,19 @@ public class Annotation<T> implements Serializable {
     this.language = language;
   }
 
-  public Span[] getPersons() {
-    return persons;
+  public Span[][] getEntityMention() {
+    return entityMentions;
   }
 
-  public void setPersons(Span[] persons) {
-    this.persons = persons;
+  public void setEntityMention(Span[][] entityMention) {
+    this.entityMentions = entityMention;
   }
 
-  public Span[] getPos() {
+  public String[][] getPos() {
     return pos;
   }
 
-  public void setPos(Span[] pos) {
+  public void setPos(String[][] pos) {
     this.pos = pos;
   }
 
@@ -73,13 +73,16 @@ public class Annotation<T> implements Serializable {
 
   public void setSentences(Span[] sentences) {
     this.sentences = sentences;
+
+    tokens = new Span[sentences.length][];
+    pos = new String[sentences.length][];
   }
 
-  public Span[] getTokens() {
+  public Span[][] getTokens() {
     return tokens;
   }
 
-  public void setTokens(Span[] tokens) {
+  public void setTokens(Span[][] tokens) {
     this.tokens = tokens;
   }
 }
