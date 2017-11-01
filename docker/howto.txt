@@ -1,0 +1,9 @@
+# start
+docker-compose -f elastic.yml up -d
+
+# stop
+docker-compose -f elastic.yml stop
+
+# shutdown and remove
+docker-compose -f elastic.yml down -v
+
