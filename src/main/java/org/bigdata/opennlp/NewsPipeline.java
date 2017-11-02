@@ -1,21 +1,11 @@
 package org.bigdata.opennlp;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.typeinfo.TypeInformation;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
-import org.apache.flink.shaded.calcite.com.google.common.collect.Maps;
-import org.apache.flink.shaded.com.google.common.collect.Lists;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -26,7 +16,6 @@ import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerModel;
-import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
 
 public class NewsPipeline {
 

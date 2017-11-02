@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.common.io.DelimitedInputFormat;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Borrowed from TextInputFormat
@@ -22,12 +23,6 @@ public class NewsArticleInputFormat extends DelimitedInputFormat<NewsArticle> {
    */
   private static final byte NEW_LINE = (byte) '\n';
 
-
-  /**
-   * The name of the charset to use for decoding.
-   */
-  private String charsetName = "UTF-8";
-
   private static final ObjectMapper mapper = new ObjectMapper();
 
   public NewsArticleInputFormat() {
@@ -41,7 +36,7 @@ public class NewsArticleInputFormat extends DelimitedInputFormat<NewsArticle> {
             && bytes[offset+numBytes-1] == CARRIAGE_RETURN){
       numBytes -= 1;
     }
-    return  mapper.readValue(new String(bytes, offset, numBytes, this.charsetName), NewsArticle.class);
+    return mapper.readValue(new String(bytes, offset, numBytes, StandardCharsets.UTF_8), NewsArticle.class);
   }
 
 }

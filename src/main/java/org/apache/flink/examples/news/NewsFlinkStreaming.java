@@ -27,7 +27,8 @@ public class NewsFlinkStreaming {
             env.readFile(new NewsArticleInputFormat(), parameterTool.getRequired("file"));
 
     DataStream<Tuple2<String,Integer>> counts = articleStream
-            .flatMap((FlatMapFunction<NewsArticle, Tuple2<String, Integer>>) (article, collector) -> collector.collect(new Tuple2<>(article.getLanguage(), 1)))
+            .flatMap((FlatMapFunction<NewsArticle, Tuple2<String, Integer>>)
+                (article, collector) -> collector.collect(new Tuple2<>(article.getLanguage(), 1)))
             .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)))
             .keyBy(0)
             .sum(1);
