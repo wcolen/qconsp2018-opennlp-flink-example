@@ -1,0 +1,11 @@
+#elasticsearch.url:
+#  http://elasticsearch1:9200
+
+elasticsearch.username:
+  elastic
+
+elasticsearch.password:
+  changeme
+
+xpack.security.enabled:
+  false
