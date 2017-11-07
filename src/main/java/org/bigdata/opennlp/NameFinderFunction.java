@@ -29,7 +29,7 @@ public class NameFinderFunction<T> extends RichMapFunction<Annotation<T>,Annotat
             String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());
             Span[] names = nameFinder.find(tokens);
 
-            annotation.getEntityMention()[i] = names;
+            annotation.getEntityMention()[i] = Span.spansToStrings(names, tokens);
         }
 
         return annotation;

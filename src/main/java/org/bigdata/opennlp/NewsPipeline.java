@@ -74,18 +74,6 @@ public class NewsPipeline {
 
     analyzedEng.addSink(new ElasticsearchSink<Annotation<NewsArticle>>(config, transportAddresses, new ESSinkFunction()));
 
-
-/*
-    SingleOutputStreamOperator eng2 = articleStream.flatMap((FlatMapFunction<Annotation<NewsArticle>, Tuple2<String, Integer>>)
-        (annotation, collector) -> collector.collect(new Tuple2<>(annotation.getLanguage(), 1)))
-        .returns(new TupleTypeInfo(TypeInformation.of(String.class), TypeInformation.of(Integer.class)))
-        .keyBy(0)
-        .sum(1);
-*/
-    analyzedEng.print();
-
-    //eng.print();
-
     env.execute();
 
   }
