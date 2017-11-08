@@ -6,12 +6,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
-import org.apache.flink.hadoop.shaded.com.google.common.collect.Lists;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -40,7 +41,8 @@ public class NewsPipeline {
             .setParallelism(parameterTool.getInt("parallelism", 5)).setMaxParallelism(10);
 
     DataStream<Annotation<NewsArticle>> rawStream =
-            env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()), parameterTool.getRequired("file"))
+            env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()),
+                parameterTool.getRequired("file"))
                     .map(new LanguageDetectorFunction<>());
 
     SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
@@ -68,11 +70,12 @@ public class NewsPipeline {
     config.put("cluster.name", "docker-cluster");
     config.put("bulk.flush.max.actions", "1000");
 
-    List<InetSocketAddress> transportAddresses = Lists.newArrayList(
+    List<InetSocketAddress> transportAddresses = Stream.of(
             new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9300),
-            new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9301));
+            new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9301))
+        .collect(Collectors.toList());
 
-    analyzedEng.addSink(new ElasticsearchSink<Annotation<NewsArticle>>(config, transportAddresses, new ESSinkFunction()));
+    analyzedEng.addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
 
     env.execute();
 
