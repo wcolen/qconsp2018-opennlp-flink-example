@@ -1,82 +1,100 @@
-DELETE gdpr-entities
-
-DELETE gdpr-documents
-
-PUT gdpr-documents
+GET my-index/_search
 {
-  "mappings": {
+  "query": {
+    "match_all": {}
+  }
+}
 
-    "document": {
+GET /my-index/_mapping/news-article
 
-      "properties": {
-
-        "data": {
-          "type": "text",
-          "analyzer": "danish"
-        },
-        "discoveredAt": {
-          "type": "date"
-        },
-        "tagged": {
-          "type": "text",
-          "index": "false"
-        },
-        "entity": {
-
-          "type": "nested",
-          "properties": {
-            "nameType": { "type": "text" },
-            "value": { "type": "text" }
+GET my-index/_search 
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "text": "arrested"
           }
         }
-
-      }
-
+      ], 
+      "must_not": [
+        {
+          "term": {
+            "lang": "dan"
+          }
+        }
+      ]
+        
     }
-
   }
 }
+GET my-index/_search 
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "entity-keys": "debbie"
+          }
+        },
+        {
+          "term": {
+            "entity-keys": "debbie"
+          }
+        }
+      ], 
+      "must_not": [
+        {
+          "term": {
+            "lang": "dan"
+          }
+        }
+      ]
+        
+    }
+  }
+}
+GET my-index/_search
+{
+  "query": {
+    "match" : {
+            "entity-keys" : "john"
+        }
+  }
+}
+DELETE my-index
 
-PUT gdpr-entities
+PUT my-index
 {
   "mappings": {
-    "entity": {
+    
+    "news-article": {
+      
       "properties": {
-
-        "discoveredAt": {
+        "date": {
           "type": "date"
         },
-        "document": {
-          "type": "text"
-        },
-        "nameType": {
+        "lang": {
           "type": "keyword"
         },
-        "value": {
+        "headline": {
+            "type": "text"
+        },
+        "body": {
           "type": "text"
+        },
+        "entity-keys": {
+          "type": "keyword"
+        },
+        "source": {
+        	"type": "keyword"
         }
-
+          
       }
+        
     }
+    
   }
 }
-
-POST gdpr-documents/document/_search/
-{
-  "query": {
-    "match_all": {}
-  }
-}
-
-POST gdpr-entities/entity/_search/
-{
-  "query": {
-    "match_all": {}
-  }
-}
-
-
-GET _cat/indices
-
-GET gdpr/_mappings
-
