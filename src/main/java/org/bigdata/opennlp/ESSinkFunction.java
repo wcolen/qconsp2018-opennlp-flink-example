@@ -14,7 +14,6 @@ import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
 import opennlp.tools.tokenize.SimpleTokenizer;
-import opennlp.tools.util.Span;
 
 public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<NewsArticle>> {
 
@@ -52,6 +51,8 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
 	}
 
 	json.put("entity-keys", entityKeys);
+
+	// create fields for words with certain pos tags ...
 
 	IndexRequest request = Requests.indexRequest()
 		.index("my-index")

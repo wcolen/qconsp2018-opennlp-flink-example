@@ -20,6 +20,7 @@ import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
 
+import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.sentdetect.SentenceModel;
@@ -59,11 +60,15 @@ public class NewsPipeline {
 
     POSModel engPosModel = new POSModel(NewsPipeline.class.getResource("/opennlp-models/en-pos-perceptron.bin"));
 
+    ChunkerModel engChunkModel=
+        new ChunkerModel(NewsPipeline.class.getResource("/opennlp-models/en-chunker.bin"));
+
     TokenNameFinderModel engNerPersonModel =
         new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
 
     SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.setParallelism(2)
         .map(new POSTaggerFunction<>(engPosModel)).setParallelism(2)
+        .map(new ChunkerFunction<>(engChunkModel)).setParallelism(2)
         .map(new NameFinderFunction<>(engNerPersonModel));
 
     Map<String,String> config = new HashMap<>();
