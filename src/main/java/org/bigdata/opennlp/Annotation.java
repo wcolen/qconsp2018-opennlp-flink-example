@@ -78,6 +78,7 @@ public class Annotation<T> implements Serializable {
     tokens = new Span[sentences.length][];
     pos = new String[sentences.length][];
     entityMentions = new String[sentences.length][];
+    chunks = new String[sentences.length][];
   }
 
   public Span[][] getTokens() {
