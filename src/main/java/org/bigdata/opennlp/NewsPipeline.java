@@ -5,10 +5,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +13,7 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
+import org.apache.flink.shaded.com.google.common.collect.Sets;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
@@ -67,7 +65,7 @@ public class NewsPipeline {
                 parameterTool.getRequired("file"))
                     .map(new LanguageDetectorFunction<>());
 
-    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
+    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector("eng"));
 
     // english news articles
     SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
@@ -98,9 +96,20 @@ public class NewsPipeline {
   }
 
   private static class LanguageSelector<T> implements OutputSelector<Annotation<T>> {
+    public static String OTHER_LANGUAGES = "OTHER_LANGUAGES";
+
+    private final Set<String> supportedLanguaged;
+
+    public LanguageSelector(String ... languages) {
+      supportedLanguaged = Sets.newHashSet(languages);
+    }
+
     @Override
     public Iterable<String> select(Annotation<T> annotation) {
-      return Collections.singletonList(annotation.getLanguage());
+      if (supportedLanguaged.contains(annotation.getLanguage()))
+        return Collections.singletonList(annotation.getLanguage());
+      else
+        return Collections.singletonList(OTHER_LANGUAGES);
     }
   }
 
