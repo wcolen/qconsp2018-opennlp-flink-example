@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
@@ -19,25 +21,17 @@ import opennlp.tools.util.Span;
 
 public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<NewsArticle>> {
 
+  private static Predicate<String> ALPHANUMSPACE = Pattern.compile("[\\p{L}\\p{Nd}\\s]+").asPredicate();
+
   private String entityKey(CharSequence mention) {
 
     String[] mentionTokens = SimpleTokenizer.INSTANCE.tokenize(mention.toString());
     // join and clean non alphanum
     return Arrays.stream(mentionTokens)
-            .map(t -> t.toLowerCase()).sorted()
-            .collect(Collectors.joining(" "))
-            .replaceAll("[^\\p{L}\\p{Nd}]+", "");
-		/*
-		Arrays.sort(mentionTokens);
-
-		StringBuilder key = new StringBuilder();
-
-		for (String token : mentionTokens) {
-			key.append(token.toLowerCase());
-		}
-
-		return key.toString();
-		*/
+            .filter(ALPHANUMSPACE)
+            .map(t -> t.toLowerCase())
+            //.sorted()
+            .collect(Collectors.joining(" "));
   }
 
   @Override
@@ -57,12 +51,14 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
 	for (int i = 0; i < element.getSentences().length; i++) {
 
 	  for (int j = 0; j < element.getEntityMention()[i].length; j++) {
-		String name = element.getEntityMention()[i][j];
-		entityKeys.add(entityKey(name));
+			String name = element.getEntityMention()[i][j];
+			if (element.getEntityMention()[i].length > 1)
+			  entityKeys.add(entityKey(name));
 	  }
 	}
 
-	json.put("entity-keys", entityKeys.toArray(new String[entityKeys.size()]));
+	//json.put("entity-keys", entityKeys.toArray(new String[entityKeys.size()]));
+	json.put("entity-keys", entityKeys);
 
 	// create fields for words with certain pos tags ...
 	// index nouns only
