@@ -1,6 +1,8 @@
 package org.bigdata.opennlp;
 
+
 import java.util.*;
+
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -56,8 +58,7 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
 
 	  for (int j = 0; j < element.getEntityMention()[i].length; j++) {
 			Optional<String> name = entityKey(element.getEntityMention()[i][j]);
-			if (name.isPresent())
-			  entityKeys.add(name.get());
+			name.ifPresent(entityKeys::add);
 	  }
 	}
 
@@ -80,7 +81,7 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
       }
     }
 
-	json.put("tokens-nouns", "");
+	json.put("nouns", nouns);
 
 	IndexRequest request = Requests.indexRequest()
 		.index("my-index")
