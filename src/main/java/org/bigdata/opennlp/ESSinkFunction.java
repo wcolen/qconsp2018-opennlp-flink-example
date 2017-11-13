@@ -1,8 +1,14 @@
 package org.bigdata.opennlp;
 
 
-import opennlp.tools.tokenize.SimpleTokenizer;
-import opennlp.tools.util.Span;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.shaded.com.google.common.collect.Sets;
@@ -11,8 +17,8 @@ import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import opennlp.tools.tokenize.SimpleTokenizer;
+import opennlp.tools.util.Span;
 
 public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<NewsArticle>> {
 
@@ -68,6 +74,7 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
 
     json.put("entity-keys", entityKeys);
 
+
     // create fields for words with certain pos tags ...
     // index nouns only
     List<String> nouns = new ArrayList<>();
@@ -84,6 +91,22 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
       }
 
     json.put("nouns", nouns);
+
+    List<String> nounPhrases = new ArrayList<>();
+
+    for (int i = 0; i < element.getSentences().length; i++) {
+      String[] tokens = Span.spansToStrings(element.getTokens()[i], element.getSofa());
+      for (int j = 0; j < element.getChunks()[i].length; j++) {
+        Span chunkSpan = element.getChunks()[i][j];
+        String[] chunkTokens = Span.spansToStrings(new Span[] {chunkSpan}, tokens);
+
+        if (chunkSpan.getType().equalsIgnoreCase("NP")) {
+          nounPhrases.add(chunkTokens[0]);
+        }
+      }
+    }
+
+    json.put("np", nounPhrases);
 
     IndexRequest request = Requests.indexRequest()
       .index("my-index")

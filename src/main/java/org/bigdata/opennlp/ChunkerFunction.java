@@ -28,7 +28,7 @@ public class ChunkerFunction<T> extends RichMapFunction<Annotation<T>,Annotation
 	for (int i = 0; i < annotation.getTokens().length; i++) {
 	  String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());
 	  String[] tags = annotation.getPos()[i];
-	  String[] chunks = chunker.chunk(tokens, tags);
+	  Span[] chunks = chunker.chunkAsSpans(tokens, tags);
 
 	  annotation.getChunks()[i] = chunks;
 	}

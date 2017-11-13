@@ -16,7 +16,7 @@ public class Annotation<T> implements Serializable {
   private Span[][] tokens;
   private String[][] entityMentions;
   private String[][] pos;
-  private String[][] chunks;
+  private Span[][] chunks;
 
   public Annotation(final String id, final String sofa, final T piggyback) {
     this.id = id;
@@ -83,7 +83,7 @@ public class Annotation<T> implements Serializable {
     tokens = new Span[sentences.length][];
     pos = new String[sentences.length][];
     entityMentions = new String[sentences.length][];
-    chunks = new String[sentences.length][];
+    chunks = new Span[sentences.length][];
   }
 
   public Span[][] getTokens() {
@@ -99,7 +99,7 @@ public class Annotation<T> implements Serializable {
     return getLanguage() + " : " + getSofa().substring(getHeadline().getStart(), getHeadline().getEnd());
   }
 
-  public String[][] getChunks() {
+  public Span[][] getChunks() {
     return chunks;
   }
 }
