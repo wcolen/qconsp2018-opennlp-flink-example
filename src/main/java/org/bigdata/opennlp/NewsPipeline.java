@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticle;
@@ -22,14 +23,14 @@ import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.datastream.SplitStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class NewsPipeline {
 
@@ -90,6 +91,17 @@ public class NewsPipeline {
         .collect(Collectors.toList());
 
     analyzedEng.addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
+
+    // Write all articles in non-analyzed languages to ES
+    articleStream.filter(new FilterFunction<Annotation<NewsArticle>>() {
+      @Override
+      public boolean filter(Annotation<NewsArticle> value) throws Exception {
+        return !"eng".equalsIgnoreCase(value.getLanguage()) &&
+            !"por".equalsIgnoreCase(value.getLanguage());
+      }
+    })
+    .addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
+
 
     env.execute();
 
