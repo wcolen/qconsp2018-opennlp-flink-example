@@ -66,7 +66,8 @@ public class NewsPipeline {
                 parameterTool.getRequired("file"))
                     .map(new LanguageDetectorFunction<>());
 
-    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector("eng"));
+    // support for English and Portuguese
+    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector("eng","por"));
 
     // english news articles
     SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
@@ -77,7 +78,7 @@ public class NewsPipeline {
         .map(new ChunkerFunction<>(engChunkModel))
         .map(new NameFinderFunction<>(engNerPersonModel));
 
-    // elastic search
+    // elastic search configuration
     Map<String,String> config = new HashMap<>();
     config.put("cluster.name", "docker-cluster");
     config.put("bulk.flush.max.actions", "1000");
@@ -90,6 +91,8 @@ public class NewsPipeline {
 
     analyzedEng.addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
 
+
+    /*
     // Write all articles in non-analyzed languages to ES
     articleStream.filter(new FilterFunction<Annotation<NewsArticle>>() {
       @Override
@@ -98,7 +101,11 @@ public class NewsPipeline {
             !"por".equalsIgnoreCase(value.getLanguage());
       }
     })
-    .addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
+    */
+
+    // Write all articles in non-analyzed languages to ES
+    articleStream.select(LanguageSelector.OTHER_LANGUAGES)
+            .addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
 
 
     env.execute();
