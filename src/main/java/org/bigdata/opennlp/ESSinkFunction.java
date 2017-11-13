@@ -1,10 +1,6 @@
 package org.bigdata.opennlp;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -18,20 +14,28 @@ import org.elasticsearch.client.Requests;
 
 import opennlp.tools.tokenize.SimpleTokenizer;
 import opennlp.tools.util.Span;
+import org.elasticsearch.common.inject.internal.Join;
 
 public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<NewsArticle>> {
 
   private static Predicate<String> ALPHANUMSPACE = Pattern.compile("[\\p{L}\\p{Nd}\\s]+").asPredicate();
 
-  private String entityKey(CharSequence mention) {
+  private Optional<String> entityKey(CharSequence mention) {
 
     String[] mentionTokens = SimpleTokenizer.INSTANCE.tokenize(mention.toString());
-    // join and clean non alphanum
-    return Arrays.stream(mentionTokens)
-            .filter(ALPHANUMSPACE)
-            .map(t -> t.toLowerCase())
-            //.sorted()
-            .collect(Collectors.joining(" "));
+
+    if (mentionTokens.length > 1) {
+      // join and clean non alphanum
+      List<String> tokens = Arrays.stream(mentionTokens)
+              .filter(ALPHANUMSPACE)
+              .map(t -> t.toLowerCase()).collect(Collectors.toList());
+      //.sorted()
+      //.collect(Collectors.joining(" "));
+
+      if (tokens.size() > 1)
+        return Optional.of(Join.join(" ", tokens));
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -51,9 +55,9 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
 	for (int i = 0; i < element.getSentences().length; i++) {
 
 	  for (int j = 0; j < element.getEntityMention()[i].length; j++) {
-			String name = element.getEntityMention()[i][j];
-			if (element.getEntityMention()[i].length > 1)
-			  entityKeys.add(entityKey(name));
+			Optional<String> name = entityKey(element.getEntityMention()[i][j]);
+			if (name.isPresent())
+			  entityKeys.add(name.get());
 	  }
 	}
 
