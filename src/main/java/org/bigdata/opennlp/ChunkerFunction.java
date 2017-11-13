@@ -19,8 +19,8 @@ public class ChunkerFunction<T> extends RichMapFunction<Annotation<T>,Annotation
 
   @Override
   public void open(Configuration parameters) throws Exception {
-	super.open(parameters);
-	chunker = new ChunkerME(model);
+	  super.open(parameters);
+	  chunker = new ChunkerME(model);
   }
 
   @Override
