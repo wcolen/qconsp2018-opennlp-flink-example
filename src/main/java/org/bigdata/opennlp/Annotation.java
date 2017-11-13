@@ -69,7 +69,12 @@ public class Annotation<T> implements Serializable {
   }
 
   public Span[] getSentences() {
-    return sentences;
+    if (sentences != null) {
+      return sentences;
+    }
+    else {
+      return new Span[0];
+    }
   }
 
   public void setSentences(Span[] sentences) {
