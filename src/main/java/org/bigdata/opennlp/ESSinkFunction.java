@@ -76,7 +76,7 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
       }
     }
 
-	json.put("tokens-nouns", "");
+	json.put("nouns", nouns);
 
 	IndexRequest request = Requests.indexRequest()
 		.index("my-index")
