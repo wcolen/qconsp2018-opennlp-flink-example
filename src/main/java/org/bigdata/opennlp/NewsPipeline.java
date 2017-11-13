@@ -2,6 +2,8 @@ package org.bigdata.opennlp;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +27,14 @@ import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.sentdetect.SentenceModel;
 import opennlp.tools.tokenize.TokenizerModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class NewsPipeline {
+
+  private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+
+  private static final Logger LOG = LoggerFactory.getLogger(NewsPipeline.class);
 
   /**
    * --parallelism <n>, default=1
@@ -34,6 +42,8 @@ public class NewsPipeline {
    * @param args
    */
   public static void main(String[] args) throws Exception {
+
+    LOG.info("Started: " + dtf.format(LocalDateTime.now()));
 
     ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
@@ -66,8 +76,7 @@ public class NewsPipeline {
     TokenNameFinderModel engNerPersonModel =
         new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
 
-    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.setParallelism(4)
-        .map(new POSTaggerFunction<>(engPosModel))
+    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.map(new POSTaggerFunction<>(engPosModel))
         .map(new ChunkerFunction<>(engChunkModel))
         .map(new NameFinderFunction<>(engNerPersonModel));
 
@@ -83,6 +92,8 @@ public class NewsPipeline {
     analyzedEng.addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
 
     env.execute();
+
+    LOG.info("Done: " + dtf.format(LocalDateTime.now()));
 
   }
 

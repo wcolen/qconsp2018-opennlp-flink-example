@@ -90,6 +90,9 @@ PUT my-index
         },
         "source": {
         	"type": "keyword"
+        },
+        "nouns": {
+        	"type": "keyword"
         }
           
       }

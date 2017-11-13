@@ -19,20 +19,8 @@ public class ESSinkFunctionTest {
     return Arrays.stream(mentionTokens)
             .filter(ALPHANUMSPACE)
             .map(t -> t.toLowerCase())
-            //.sorted()
             .collect(Collectors.joining(" "));
-    //.replaceAll("[^\\p{L}\\p{Nd}\\s]+", "");
-		/*
-		Arrays.sort(mentionTokens);
 
-		StringBuilder key = new StringBuilder();
-
-		for (String token : mentionTokens) {
-			key.append(token.toLowerCase());
-		}
-
-		return key.toString();
-		*/
   }
 
   public static void main(String[] args) {
