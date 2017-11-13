@@ -39,7 +39,7 @@ public class NewsPipeline {
 
     final StreamExecutionEnvironment env =
             StreamExecutionEnvironment.getExecutionEnvironment()
-            .setParallelism(parameterTool.getInt("parallelism", 5)).setMaxParallelism(10);
+            .setParallelism(parameterTool.getInt("parallelism", 1)).setMaxParallelism(10);
 
     DataStream<Annotation<NewsArticle>> rawStream =
             env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()),
@@ -66,9 +66,9 @@ public class NewsPipeline {
     TokenNameFinderModel engNerPersonModel =
         new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
 
-    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.setParallelism(2)
-        .map(new POSTaggerFunction<>(engPosModel)).setParallelism(2)
-        .map(new ChunkerFunction<>(engChunkModel)).setParallelism(2)
+    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.setParallelism(4)
+        .map(new POSTaggerFunction<>(engPosModel))
+        .map(new ChunkerFunction<>(engChunkModel))
         .map(new NameFinderFunction<>(engNerPersonModel));
 
     Map<String,String> config = new HashMap<>();
