@@ -1,5 +1,6 @@
 package org.bigdata.opennlp;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
@@ -36,6 +37,12 @@ public class NewsPipeline {
 
   private static final Logger LOG = LoggerFactory.getLogger(NewsPipeline.class);
 
+  private static SentenceModel engSentenceModel;
+  private static TokenizerModel engTokenizerModel;
+  private static POSModel engPosModel;
+  private static ChunkerModel engChunkModel;
+  private static TokenNameFinderModel engNerPersonModel;
+
   /**
    * --parallelism <n>, default=1
    * --file <newsfile.gz>
@@ -44,6 +51,10 @@ public class NewsPipeline {
   public static void main(String[] args) throws Exception {
 
     LOG.info("Started: " + dtf.format(LocalDateTime.now()));
+
+    initializeModels();
+
+    LOG.info("Models loaded: " + dtf.format(LocalDateTime.now()));
 
     ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
@@ -58,31 +69,20 @@ public class NewsPipeline {
 
     SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector());
 
-    SentenceModel engSentenceModel =
-        new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/en-sent.bin"));
-
-    TokenizerModel engTokenizerModel =
-        new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/en-token.bin"));
-
+    // english news articles
     SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
         .map(new SentenceDetectorFunction<>(engSentenceModel))
         .map(new TokenizerFunction<>(engTokenizerModel));
-
-    POSModel engPosModel = new POSModel(NewsPipeline.class.getResource("/opennlp-models/en-pos-perceptron.bin"));
-
-    ChunkerModel engChunkModel=
-        new ChunkerModel(NewsPipeline.class.getResource("/opennlp-models/en-chunker.bin"));
-
-    TokenNameFinderModel engNerPersonModel =
-        new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
 
     SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.map(new POSTaggerFunction<>(engPosModel))
         .map(new ChunkerFunction<>(engChunkModel))
         .map(new NameFinderFunction<>(engNerPersonModel));
 
+    // elastic search
     Map<String,String> config = new HashMap<>();
     config.put("cluster.name", "docker-cluster");
     config.put("bulk.flush.max.actions", "1000");
+    config.put("bulk.flush.interval.ms", "10000");
 
     List<InetSocketAddress> transportAddresses = Stream.of(
             new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 9300),
@@ -102,5 +102,14 @@ public class NewsPipeline {
     public Iterable<String> select(Annotation<T> annotation) {
       return Collections.singletonList(annotation.getLanguage());
     }
+  }
+
+  private static void initializeModels() throws IOException {
+    engSentenceModel = new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/en-sent.bin"));
+    engTokenizerModel = new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/en-token.bin"));
+    engPosModel= new POSModel(NewsPipeline.class.getResource("/opennlp-models/en-pos-perceptron.bin"));
+    engChunkModel = new ChunkerModel(NewsPipeline.class.getResource("/opennlp-models/en-chunker.bin"));
+    engNerPersonModel = new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner-person.bin"));
+
   }
 }
