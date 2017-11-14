@@ -1,16 +1,16 @@
 package org.bigdata.opennlp;
 
-import java.io.Serializable;
-import java.util.Map;
-
+import opennlp.tools.util.Span;
 import org.apache.flink.shaded.com.google.common.collect.Maps;
 
-import opennlp.tools.util.Span;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Map;
 
 public class Annotation implements Serializable {
 
-  private final String id;
-  private final String sofa;
+  private String id;
+  private String sofa;
   private String language;
   private final Map<String,Object> properties = Maps.newHashMap();
 
@@ -24,8 +24,14 @@ public class Annotation implements Serializable {
   private String[][] pos;
   private Span[][] chunks;
 
-  public Annotation(final String id, final String sofa) {
+  public Annotation() {
+  }
+
+  public void setId(String id) {
     this.id = id;
+  }
+
+  public void setSofa(String sofa) {
     this.sofa = sofa;
   }
 
@@ -100,6 +106,38 @@ public class Annotation implements Serializable {
     else {
       return new Span[0];
     }
+  }
+
+  public Map<String, Object> getProperties() {
+    return Collections.unmodifiableMap(properties);
+  }
+
+  public String[][] getPersonMentions() {
+    return personMentions;
+  }
+
+  public void setPersonMentions(String[][] personMentions) {
+    this.personMentions = personMentions;
+  }
+
+  public String[][] getOrganizationMentions() {
+    return organizationMentions;
+  }
+
+  public void setOrganizationMentions(String[][] organizationMentions) {
+    this.organizationMentions = organizationMentions;
+  }
+
+  public String[][] getLocationMentions() {
+    return locationMentions;
+  }
+
+  public void setLocationMentions(String[][] locationMentions) {
+    this.locationMentions = locationMentions;
+  }
+
+  public void setChunks(Span[][] chunks) {
+    this.chunks = chunks;
   }
 
   public void setSentences(Span[] sentences) {

@@ -56,10 +56,10 @@ public class NameFinderFunction extends RichMapFunction<Annotation,Annotation> {
                 personMentions.toArray(new String[personMentions.size()]);
 
             annotation.getOrganizationMention()[i] =
-                organizationMentions.toArray(new String[personMentions.size()]);
+                organizationMentions.toArray(new String[organizationMentions.size()]);
 
             annotation.getLocationMention()[i] =
-                locationMentions.toArray(new String[personMentions.size()]);
+                locationMentions.toArray(new String[locationMentions.size()]);
         }
 
         return annotation;

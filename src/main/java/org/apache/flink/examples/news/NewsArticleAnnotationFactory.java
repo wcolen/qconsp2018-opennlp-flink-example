@@ -19,7 +19,9 @@ public class NewsArticleAnnotationFactory extends AnnotationFactory implements S
 
     StringBuilder sb = new StringBuilder(newsArticle.getHeadline());
     newsArticle.getBody().forEach(paragraph -> sb.append(NEWLINE).append(paragraph));
-    Annotation annotation = new Annotation(newsArticle.getId(), sb.toString());
+    Annotation annotation = new Annotation();
+    annotation.setId(newsArticle.getId());
+    annotation.setSofa(sb.toString());
     annotation.setHeadline(new Span(0, newsArticle.getHeadline().length()));
     annotation.putProperty("SOURCE", newsArticle.getSourceName());
     annotation.putProperty("PUBLICATION_DATE", newsArticle.getPublicationDate());

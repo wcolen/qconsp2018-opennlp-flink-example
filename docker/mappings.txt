@@ -85,8 +85,14 @@ PUT my-index
         "body": {
           "type": "text"
         },
-        "entity-keys": {
+        "person": {
           "type": "keyword"
+        },
+        "org": {
+           "type": "keyword"
+		},
+        "location": {
+        	"type": "keyword"
         },
         "source": {
         	"type": "keyword"
