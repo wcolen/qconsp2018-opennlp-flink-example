@@ -8,7 +8,7 @@ import opennlp.tools.namefind.TokenNameFinder;
 import opennlp.tools.namefind.TokenNameFinderModel;
 import opennlp.tools.util.Span;
 
-public class NameFinderFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class NameFinderFunction extends RichMapFunction<Annotation,Annotation> {
 
     private transient TokenNameFinder nameFinder;
     private final TokenNameFinderModel model;
@@ -23,7 +23,7 @@ public class NameFinderFunction<T> extends RichMapFunction<Annotation<T>,Annotat
     }
 
     @Override
-    public Annotation<T> map(Annotation<T> annotation) throws Exception {
+    public Annotation map(Annotation annotation) throws Exception {
 
         for (int i = 0; i < annotation.getTokens().length; i++) {
             String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());

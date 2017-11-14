@@ -1,15 +1,17 @@
 package org.bigdata.opennlp;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import opennlp.tools.util.Span;
+import org.apache.flink.shaded.com.google.common.collect.Maps;
 
-public class Annotation<T> implements Serializable {
+public class Annotation implements Serializable {
 
   private final String id;
   private final String sofa;
   private String language;
-  private final T piggyback;
+  private final Map<String,Object> properties = Maps.newHashMap();
 
   private Span headline;
   private Span[] sentences;
@@ -18,10 +20,9 @@ public class Annotation<T> implements Serializable {
   private String[][] pos;
   private Span[][] chunks;
 
-  public Annotation(final String id, final String sofa, final T piggyback) {
+  public Annotation(final String id, final String sofa) {
     this.id = id;
     this.sofa = sofa;
-    this.piggyback = piggyback;
   }
 
   public String getId() {
@@ -30,10 +31,6 @@ public class Annotation<T> implements Serializable {
 
   public String getSofa() {
     return sofa;
-  }
-
-  public T getPiggyback() {
-    return piggyback;
   }
 
   public Span getHeadline() {
@@ -66,6 +63,14 @@ public class Annotation<T> implements Serializable {
 
   public void setPos(String[][] pos) {
     this.pos = pos;
+  }
+
+  public Object putProperty(String key, Object value) {
+    return properties.put(key, value);
+  }
+
+  public Object getProperty(String key) {
+    return properties.get(key);
   }
 
   public Span[] getSentences() {

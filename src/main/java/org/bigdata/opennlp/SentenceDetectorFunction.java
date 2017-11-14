@@ -7,7 +7,7 @@ import opennlp.tools.sentdetect.SentenceDetector;
 import opennlp.tools.sentdetect.SentenceDetectorME;
 import opennlp.tools.sentdetect.SentenceModel;
 
-public class SentenceDetectorFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class SentenceDetectorFunction extends RichMapFunction<Annotation,Annotation> {
 
     private transient SentenceDetector sentenceDetector;
     private final SentenceModel model;
@@ -22,7 +22,7 @@ public class SentenceDetectorFunction<T> extends RichMapFunction<Annotation<T>,A
     }
 
     @Override
-    public Annotation<T> map(Annotation<T> annotation) throws Exception {
+    public Annotation map(Annotation annotation) throws Exception {
         annotation.setSentences(sentenceDetector.sentPosDetect(annotation.getSofa()));
         // TODO: headline should be it own sentence. if first sentence is longer than headline then split first span into 2 spans
         return annotation;

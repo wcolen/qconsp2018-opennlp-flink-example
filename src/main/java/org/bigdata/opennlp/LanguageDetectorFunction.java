@@ -8,7 +8,7 @@ import opennlp.tools.langdetect.LanguageDetector;
 import opennlp.tools.langdetect.LanguageDetectorME;
 import opennlp.tools.langdetect.LanguageDetectorModel;
 
-public class LanguageDetectorFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class LanguageDetectorFunction extends RichMapFunction<Annotation,Annotation> {
 
   private transient LanguageDetector languageDetector;
 
@@ -19,7 +19,7 @@ public class LanguageDetectorFunction<T> extends RichMapFunction<Annotation<T>,A
   }
 
   @Override
-  public Annotation<T> map(Annotation<T> value) throws Exception {
+  public Annotation map(Annotation value) throws Exception {
     Language language = languageDetector.predictLanguage(value.getSofa());
     value.setLanguage(language.getLang());
     return value;

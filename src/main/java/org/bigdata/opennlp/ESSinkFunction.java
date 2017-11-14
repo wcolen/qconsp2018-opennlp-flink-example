@@ -1,26 +1,19 @@
 package org.bigdata.opennlp;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Pattern;
-
+import opennlp.tools.tokenize.SimpleTokenizer;
+import opennlp.tools.util.Span;
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.examples.news.NewsArticle;
 import org.apache.flink.shaded.com.google.common.collect.Sets;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
-import opennlp.tools.tokenize.SimpleTokenizer;
-import opennlp.tools.util.Span;
+import java.util.*;
+import java.util.regex.Pattern;
 
-public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<NewsArticle>> {
+public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
 
   private static Pattern ALPHANUMSPACE = Pattern.compile("[\\p{L}\\s]+");
   private static Set<String> BLACKLIST = Sets.newHashSet("gross margin");
@@ -51,14 +44,14 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation<News
   }
 
   @Override
-  public void process(Annotation<NewsArticle> element, RuntimeContext ctx, RequestIndexer indexer) {
+  public void process(Annotation element, RuntimeContext ctx, RequestIndexer indexer) {
 
     Map<String, Object> json = new HashMap<>();
     json.put("id", element.getId());
     json.put("text", element.getSofa());
     json.put("lang", element.getLanguage());
-    json.put("date", element.getPiggyback().getPublicationDate());
-    json.put("source", element.getPiggyback().getSourceName());
+    json.put("date", element.getProperty("PUBLICATION_DATE"));
+    json.put("source", element.getProperty("SOURCE"));
     json.put("headline", element.getSofa().substring(
       element.getHeadline().getStart(), element.getHeadline().getEnd()));
 

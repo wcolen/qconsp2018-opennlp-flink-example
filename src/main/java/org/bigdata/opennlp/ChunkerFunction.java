@@ -8,7 +8,7 @@ import opennlp.tools.chunker.ChunkerME;
 import opennlp.tools.chunker.ChunkerModel;
 import opennlp.tools.util.Span;
 
-public class ChunkerFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class ChunkerFunction extends RichMapFunction<Annotation,Annotation> {
 
   private ChunkerModel model;
   private Chunker chunker;
@@ -24,7 +24,7 @@ public class ChunkerFunction<T> extends RichMapFunction<Annotation<T>,Annotation
   }
 
   @Override
-  public Annotation<T> map(Annotation<T> annotation) throws Exception {
+  public Annotation map(Annotation annotation) throws Exception {
 	for (int i = 0; i < annotation.getTokens().length; i++) {
 	  String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());
 	  String[] tags = annotation.getPos()[i];

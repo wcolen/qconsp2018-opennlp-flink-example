@@ -61,22 +61,22 @@ public class NewsPipeline {
             StreamExecutionEnvironment.getExecutionEnvironment()
             .setParallelism(parameterTool.getInt("parallelism", 1)).setMaxParallelism(10);
 
-    DataStream<Annotation<NewsArticle>> rawStream =
+    DataStream<Annotation> rawStream =
             env.readFile(new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()),
                 parameterTool.getRequired("file"))
-                    .map(new LanguageDetectorFunction<>());
+                    .map(new LanguageDetectorFunction());
 
     // support for English and Portuguese
-    SplitStream<Annotation<NewsArticle>> articleStream = rawStream.split(new LanguageSelector("eng","por"));
+    SplitStream<Annotation> articleStream = rawStream.split(new LanguageSelector("eng","por"));
 
     // english news articles
-    SingleOutputStreamOperator<Annotation<NewsArticle>> eng = articleStream.select("eng")
-        .map(new SentenceDetectorFunction<>(engSentenceModel))
-        .map(new TokenizerFunction<>(engTokenizerModel));
+    SingleOutputStreamOperator<Annotation> eng = articleStream.select("eng")
+        .map(new SentenceDetectorFunction(engSentenceModel))
+        .map(new TokenizerFunction(engTokenizerModel));
 
-    SingleOutputStreamOperator<Annotation<NewsArticle>> analyzedEng = eng.map(new POSTaggerFunction<>(engPosModel))
-        .map(new ChunkerFunction<>(engChunkModel))
-        .map(new NameFinderFunction<>(engNerPersonModel));
+    SingleOutputStreamOperator<Annotation> analyzedEng = eng.map(new POSTaggerFunction(engPosModel))
+        .map(new ChunkerFunction(engChunkModel))
+        .map(new NameFinderFunction(engNerPersonModel));
 
     // elastic search configuration
     Map<String,String> config = new HashMap<>();
@@ -114,7 +114,7 @@ public class NewsPipeline {
 
   }
 
-  private static class LanguageSelector<T> implements OutputSelector<Annotation<T>> {
+  private static class LanguageSelector implements OutputSelector<Annotation> {
     public static String OTHER_LANGUAGES = "OTHER_LANGUAGES";
 
     private final Set<String> supportedLanguaged;
@@ -124,7 +124,7 @@ public class NewsPipeline {
     }
 
     @Override
-    public Iterable<String> select(Annotation<T> annotation) {
+    public Iterable<String> select(Annotation annotation) {
       if (supportedLanguaged.contains(annotation.getLanguage()))
         return Collections.singletonList(annotation.getLanguage());
       else
