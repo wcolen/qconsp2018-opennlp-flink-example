@@ -117,6 +117,7 @@ public class NewsPipeline {
     articleStream.select("por")
         .map(new SentenceDetectorFunction(porSentenceModel))
         .map(new TokenizerFunction(porTokenizerModel))
+        .map(new POSTaggerFunction(porPosModel))
         .map(new ChunkerFunction(porChunkModel))
         .map(new NameFinderFunction(porNerPersonModel))
         .addSink(new ElasticsearchSink<>(config, transportAddresses, new ESSinkFunction()));
