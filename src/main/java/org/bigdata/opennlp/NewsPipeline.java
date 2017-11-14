@@ -134,15 +134,15 @@ public class NewsPipeline {
   private static class LanguageSelector implements OutputSelector<Annotation> {
     public static String OTHER_LANGUAGES = "OTHER_LANGUAGES";
 
-    private final Set<String> supportedLanguaged;
+    private final Set<String> supportedLanguages;
 
     public LanguageSelector(String ... languages) {
-      supportedLanguaged = Sets.newHashSet(languages);
+      supportedLanguages = Sets.newHashSet(languages);
     }
 
     @Override
     public Iterable<String> select(Annotation annotation) {
-      if (supportedLanguaged.contains(annotation.getLanguage()))
+      if (supportedLanguages.contains(annotation.getLanguage()))
         return Collections.singletonList(annotation.getLanguage());
       else
         return Collections.singletonList(OTHER_LANGUAGES);
