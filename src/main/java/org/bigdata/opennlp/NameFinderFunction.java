@@ -1,5 +1,8 @@
 package org.bigdata.opennlp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
 
@@ -25,11 +28,38 @@ public class NameFinderFunction extends RichMapFunction<Annotation,Annotation> {
     @Override
     public Annotation map(Annotation annotation) throws Exception {
 
-        for (int i = 0; i < annotation.getTokens().length; i++) {
-            String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());
-            Span[] names = nameFinder.find(tokens);
 
-            annotation.getEntityMention()[i] = Span.spansToStrings(names, tokens);
+        for (int i = 0; i < annotation.getTokens().length; i++) {
+
+            List<String> personMentions = new ArrayList<>();
+            List<String> organizationMentions = new ArrayList<>();
+            List<String> locationMentions = new ArrayList<>();
+
+            String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());
+            Span[] nameSpans = nameFinder.find(tokens);
+            String[] names = Span.spansToStrings(nameSpans, tokens);
+
+            for (int j = 0; j < nameSpans.length; j++) {
+                if ("person".equals(nameSpans[j])) {
+                    personMentions.add(names[j]);
+                }
+                else if (nameSpans[j].getType().startsWith("org")) {
+                    organizationMentions.add(names[j]);
+                }
+                else if ("gpe".equals(nameSpans[j].getType()) || "loc".equals(nameSpans[j].getType())
+                    || "place".equals(nameSpans[j].getType())) {
+                    locationMentions.add(names[j]);
+                }
+            }
+
+            annotation.getPersonMention()[i] =
+                personMentions.toArray(new String[personMentions.size()]);
+
+            annotation.getOrganizationMention()[i] =
+                organizationMentions.toArray(new String[personMentions.size()]);
+
+            annotation.getLocationMention()[i] =
+                locationMentions.toArray(new String[personMentions.size()]);
         }
 
         return annotation;

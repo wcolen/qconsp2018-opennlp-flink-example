@@ -1,8 +1,15 @@
 package org.bigdata.opennlp;
 
 
-import opennlp.tools.tokenize.SimpleTokenizer;
-import opennlp.tools.util.Span;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.shaded.com.google.common.collect.Sets;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
@@ -10,8 +17,8 @@ import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
-import java.util.*;
-import java.util.regex.Pattern;
+import opennlp.tools.tokenize.SimpleTokenizer;
+import opennlp.tools.util.Span;
 
 public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
 
@@ -43,6 +50,19 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
     return Optional.empty();
   }
 
+  private Collection<String> extractMentionKeys(Span[] sentences, String[][] mentions) {
+
+    Collection<String> keys = new ArrayList<>();
+    for (int i = 0; i < sentences.length; i++) {
+      for (int j = 0; j < mentions[i].length; j++) {
+        Optional<String> name = entityKey(mentions[i][j]);
+        name.ifPresent(keys::add);
+      }
+    }
+
+    return keys;
+  }
+
   @Override
   public void process(Annotation element, RuntimeContext ctx, RequestIndexer indexer) {
 
@@ -55,33 +75,21 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
     json.put("headline", element.getSofa().substring(
       element.getHeadline().getStart(), element.getHeadline().getEnd()));
 
-    List<String> entityKeys = new ArrayList<>();
+    json.put("person", extractMentionKeys(element.getSentences(), element.getPersonMention()));
+    json.put("org", extractMentionKeys(element.getSentences(), element.getOrganizationMention()));
+    json.put("location", extractMentionKeys(element.getSentences(), element.getLocationMention()));
 
-    for (int i = 0; i < element.getSentences().length; i++) {
-
-      for (int j = 0; j < element.getEntityMention()[i].length; j++) {
-        Optional<String> name = entityKey(element.getEntityMention()[i][j]);
-        name.ifPresent(entityKeys::add);
-      }
-    }
-
-    json.put("entity-keys", entityKeys);
-
-
-    // create fields for words with certain pos tags ...
-    // index nouns only
     List<String> nouns = new ArrayList<>();
+    for (int i = 0; i < element.getSentences().length; i++) {
+      String[] tokens = Span.spansToStrings(element.getTokens()[i], element.getSofa());
+      String[] tags = element.getPos()[i];
 
-      for (int i = 0; i < element.getSentences().length; i++) {
-        String[] tokens = Span.spansToStrings(element.getTokens()[i], element.getSofa());
-        String[] tags = element.getPos()[i];
-
-        for (int j = 0; j < tokens.length; j++) {
-          if (tags[j].startsWith("N")) {
-            nouns.add(tokens[j]);
-          }
+      for (int j = 0; j < tokens.length; j++) {
+        if (tags[j].startsWith("N")) {
+          nouns.add(tokens[j]);
         }
       }
+    }
 
     json.put("nouns", nouns);
 
@@ -107,6 +115,5 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
       .source(json);
 
     indexer.add(request);
-
   }
 }
