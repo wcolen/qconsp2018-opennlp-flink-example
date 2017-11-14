@@ -3,8 +3,9 @@ package org.bigdata.opennlp;
 import java.io.Serializable;
 import java.util.Map;
 
-import opennlp.tools.util.Span;
 import org.apache.flink.shaded.com.google.common.collect.Maps;
+
+import opennlp.tools.util.Span;
 
 public class Annotation implements Serializable {
 
@@ -16,7 +17,10 @@ public class Annotation implements Serializable {
   private Span headline;
   private Span[] sentences;
   private Span[][] tokens;
-  private String[][] entityMentions;
+  private String[][] personMentions;
+  private String[][] organizationMentions;
+  private String[][] locationMentions;
+
   private String[][] pos;
   private Span[][] chunks;
 
@@ -49,12 +53,28 @@ public class Annotation implements Serializable {
     this.language = language;
   }
 
-  public String[][] getEntityMention() {
-    return entityMentions;
+  public String[][] getPersonMention() {
+    return personMentions;
   }
 
-  public void setEntityMention(String[][] entityMention) {
-    this.entityMentions = entityMention;
+  public String[][] getOrganizationMention() {
+    return organizationMentions;
+  }
+
+  public String[][] getLocationMention() {
+    return locationMentions;
+  }
+
+  public void setPersonMention(String[][] entityMention) {
+    this.personMentions = entityMention;
+  }
+
+  public void setOrganizationMention(String[][] entityMention) {
+    this.organizationMentions = entityMention;
+  }
+
+  public void setLocatioMention(String[][] entityMention) {
+    this.locationMentions = entityMention;
   }
 
   public String[][] getPos() {
@@ -87,7 +107,9 @@ public class Annotation implements Serializable {
 
     tokens = new Span[sentences.length][];
     pos = new String[sentences.length][];
-    entityMentions = new String[sentences.length][];
+    personMentions = new String[sentences.length][];
+    organizationMentions = new String[sentences.length][];
+    locationMentions = new String[sentences.length][];
     chunks = new Span[sentences.length][];
   }
 
