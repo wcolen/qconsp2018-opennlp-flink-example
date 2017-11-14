@@ -8,7 +8,7 @@ import opennlp.tools.postag.POSTagger;
 import opennlp.tools.postag.POSTaggerME;
 import opennlp.tools.util.Span;
 
-public class POSTaggerFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class POSTaggerFunction extends RichMapFunction<Annotation,Annotation> {
 
     private transient POSTagger posTagger;
 
@@ -23,7 +23,7 @@ public class POSTaggerFunction<T> extends RichMapFunction<Annotation<T>,Annotati
     }
 
     @Override
-    public Annotation<T> map(Annotation<T> annotation) throws Exception {
+    public Annotation map(Annotation annotation) throws Exception {
 
         for (int i = 0; i < annotation.getTokens().length; i++) {
             String[] tokens = Span.spansToStrings(annotation.getTokens()[i], annotation.getSofa());

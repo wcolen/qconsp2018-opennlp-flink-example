@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Borrowed from TextInputFormat
  */
-public class AnnotationInputFormat<T> extends DelimitedInputFormat<Annotation<T>> {
+public class AnnotationInputFormat extends DelimitedInputFormat<Annotation> {
 
   private static final long serialVersionUID = 1L;
 
@@ -24,15 +24,15 @@ public class AnnotationInputFormat<T> extends DelimitedInputFormat<Annotation<T>
    */
   private static final byte NEW_LINE = (byte) '\n';
 
-  private final AnnotationFactory<T> factory;
+  private final AnnotationFactory factory;
 
-  public AnnotationInputFormat(AnnotationFactory<T> factory) {
+  public AnnotationInputFormat(AnnotationFactory factory) {
     super();
     this.factory = factory;
   }
 
   @Override
-  public Annotation<T> readRecord(Annotation<T> reusable, byte[] bytes, int offset, int numBytes)
+  public Annotation readRecord(Annotation reusable, byte[] bytes, int offset, int numBytes)
       throws IOException {
     if (this.getDelimiter() != null && this.getDelimiter().length == 1
             && this.getDelimiter()[0] == NEW_LINE && offset+numBytes >= 1

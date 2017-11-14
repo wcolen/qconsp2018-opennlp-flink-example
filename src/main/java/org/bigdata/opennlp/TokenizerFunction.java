@@ -8,7 +8,7 @@ import opennlp.tools.tokenize.TokenizerME;
 import opennlp.tools.tokenize.TokenizerModel;
 import opennlp.tools.util.Span;
 
-public class TokenizerFunction<T> extends RichMapFunction<Annotation<T>,Annotation<T>> {
+public class TokenizerFunction extends RichMapFunction<Annotation,Annotation> {
 
     private transient Tokenizer tokenizer;
     private final TokenizerModel model;
@@ -23,7 +23,7 @@ public class TokenizerFunction<T> extends RichMapFunction<Annotation<T>,Annotati
     }
 
     @Override
-    public Annotation<T> map(Annotation<T> annotation) throws Exception {
+    public Annotation map(Annotation annotation) throws Exception {
 
         for (int i = 0; i < annotation.getSentences().length; i++) {
             Span sentence = annotation.getSentences()[i];
