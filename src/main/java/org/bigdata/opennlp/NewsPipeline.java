@@ -57,7 +57,7 @@ public class NewsPipeline {
     engNerPersonModel = new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner.bin"));
 
     // TODO: we need a portugese model here
-    porSentenceModel = new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/en-sent.bin"));
+    porSentenceModel = new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/por-sent.bin"));
     porTokenizerModel = new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/por-token.bin"));
     porPosModel = new POSModel(NewsPipeline.class.getResource("/opennlp-models/por-pos-maxent.bin"));
     porChunkModel = new ChunkerModel(NewsPipeline.class.getResource("/opennlp-models/por-chunker.bin"));
