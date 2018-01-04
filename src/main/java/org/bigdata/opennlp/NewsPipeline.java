@@ -1,18 +1,10 @@
 package org.bigdata.opennlp;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import opennlp.tools.chunker.ChunkerModel;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.TokenizerModel;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
@@ -25,11 +17,14 @@ import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import opennlp.tools.chunker.ChunkerModel;
-import opennlp.tools.namefind.TokenNameFinderModel;
-import opennlp.tools.postag.POSModel;
-import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.TokenizerModel;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NewsPipeline {
 
@@ -83,7 +78,10 @@ public class NewsPipeline {
 
     final StreamExecutionEnvironment env =
             StreamExecutionEnvironment.getExecutionEnvironment()
-            .setParallelism(parameterTool.getInt("parallelism", 1)).setMaxParallelism(10);
+            .setParallelism(parameterTool.getInt("parallelism", 1))
+                    .setMaxParallelism(10);
+
+    env.getConfig().enableObjectReuse();
 
     // elastic search configuration
     Map<String,String> config = new HashMap<>();
@@ -101,8 +99,8 @@ public class NewsPipeline {
 
     // Perform language detection
     SplitStream<Annotation> articleStream = rawStream
-        .map(new LanguageDetectorFunction())
-        .split(new LanguageSelector(nlpLanguages));
+            .map(new LanguageDetectorFunction())
+            .split(new LanguageSelector(nlpLanguages));
 
     // English NLP pipeline
     articleStream.select("eng")
