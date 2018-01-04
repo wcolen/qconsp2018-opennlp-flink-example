@@ -1,7 +1,7 @@
 package org.apache.flink.examples.news;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import opennlp.tools.util.Span;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.bigdata.opennlp.Annotation;
 import org.bigdata.opennlp.AnnotationFactory;
 

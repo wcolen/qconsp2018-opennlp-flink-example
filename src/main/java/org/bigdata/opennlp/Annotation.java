@@ -1,7 +1,7 @@
 package org.bigdata.opennlp;
 
 import opennlp.tools.util.Span;
-import org.apache.flink.shaded.com.google.common.collect.Maps;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
 
 import java.io.Serializable;
 import java.util.Collections;

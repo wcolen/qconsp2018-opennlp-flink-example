@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.flink.api.common.functions.RuntimeContext;
-import org.apache.flink.shaded.com.google.common.collect.Sets;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
 import org.elasticsearch.action.index.IndexRequest;

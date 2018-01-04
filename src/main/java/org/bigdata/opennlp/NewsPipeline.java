@@ -8,7 +8,7 @@ import opennlp.tools.tokenize.TokenizerModel;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.examples.news.AnnotationInputFormat;
 import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
-import org.apache.flink.shaded.com.google.common.collect.Sets;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
 import org.apache.flink.streaming.api.collector.selector.OutputSelector;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SplitStream;

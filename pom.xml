@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>HadoopSummit</groupId>
     <artifactId>HadoopSummit</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.0.3-SNAPSHOT</version>
     <name>HadoopSummit</name>
 
     <prerequisites>
@@ -22,9 +22,9 @@
 
     <properties>
         <slf4j.version>1.7.12</slf4j.version>
-        <flink.version>1.3.2</flink.version>
+        <flink.version>1.4.0</flink.version>
         <scala.version>2.11</scala.version>
-        <opennlp.version>1.8.3</opennlp.version>
+        <opennlp.version>1.8.4</opennlp.version>
     </properties>
 
     <dependencies>

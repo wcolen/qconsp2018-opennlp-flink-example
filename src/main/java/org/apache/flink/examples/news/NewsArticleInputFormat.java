@@ -1,7 +1,7 @@
 package org.apache.flink.examples.news;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.api.common.io.DelimitedInputFormat;
+import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

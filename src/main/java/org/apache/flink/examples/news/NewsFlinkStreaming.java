@@ -16,6 +16,7 @@ public class NewsFlinkStreaming {
    *  --file <path to article.json.gz>
    * @throws Exception
    */
+
   public static void main(final String[] args) throws Exception {
 
     final StreamExecutionEnvironment env =
@@ -38,4 +39,5 @@ public class NewsFlinkStreaming {
     env.execute();
 
   }
+
 }
