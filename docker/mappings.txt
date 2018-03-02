@@ -1,0 +1,124 @@
+GET my-index/_search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+GET /my-index/_mapping/news-article
+
+GET my-index/_search 
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "text": "arrested"
+          }
+        }
+      ], 
+      "must_not": [
+        {
+          "term": {
+            "lang": "dan"
+          }
+        }
+      ]
+        
+    }
+  }
+}
+GET my-index/_search 
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "entity-keys": "debbie"
+          }
+        },
+        {
+          "term": {
+            "entity-keys": "debbie"
+          }
+        }
+      ], 
+      "must_not": [
+        {
+          "term": {
+            "lang": "dan"
+          }
+        }
+      ]
+        
+    }
+  }
+}
+GET my-index/_search
+{
+  "query": {
+    "match" : {
+            "entity-keys" : "john"
+        }
+  }
+}
+DELETE my-index
+
+PUT my-index
+{
+  "mappings": {
+    
+    "news-article": {
+      
+      "properties": {
+        "date": {
+          "type": "date"
+        },
+        "lang": {
+          "type": "keyword"
+        },
+        "headline": {
+            "type": "text"
+        },
+        "body": {
+          "type": "text"
+        },
+        "person": {
+        	"properties": {
+        		"name": {  "type": "keyword" },
+        		"gender": { "type": "keyword" }
+        	}
+        },
+        "org": {
+           "type": "keyword"
+		},
+		"np": {
+		    "type": "keyword"
+		},
+        "location": {
+        	"type": "keyword"
+        },
+        "source": {
+        	"type": "keyword"
+        },
+        "nouns": {
+        	"type": "keyword"
+        },
+         "duration": {
+        	"type": "long"
+        },
+          "topic": {
+            "type": "keyword"
+        },
+          "sentiment": {
+            "type": "keyword"
+        }
+          
+      }
+        
+    }
+    
+  }
+}
