@@ -5,7 +5,8 @@ Code for the talk **Sistemas de Processamento de Linguagem Natural na Prática**
 This code was forked from https://github.com/thygesen/DC-FlinkMeetup and was also used in:
 
 * The 2nd Washington DC Flink Meetup on Nov 19, 2015 at CapitalOne, Vienna, VA
-* Big Data Madrid 2017, November 16-17 
+* Big Data Madrid 2017, November 16-17 [added Apache OpenNLP]
+* Big Data Warsaw 2018, Feb 22
 
 # Instructions
 
@@ -18,4 +19,3 @@ This code was forked from https://github.com/thygesen/DC-FlinkMeetup and was als
 * Run `org.apache.opennlp.flink.examples.NewsPipeline` passing a file with -file (one document per line) and the desired parallelism.
 
 * Create some visualization and dashboards in Kibana
-
