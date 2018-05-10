@@ -1,4 +1,4 @@
-package org.bigdata.opennlp;
+package org.apache.opennlp.flink.examples.annotation;
 
 import java.io.IOException;
 

@@ -1,12 +1,15 @@
-package org.bigdata.opennlp;
-
-import opennlp.tools.util.Span;
-import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
+package org.apache.opennlp.flink.examples.annotation;
 
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
+import lombok.Data;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Maps;
+
+import opennlp.tools.util.Span;
+
+@Data
 public class Annotation implements Serializable {
 
   private String id;

@@ -1,11 +1,9 @@
-package org.apache.flink.examples.news;
-
-import org.apache.flink.api.common.io.DelimitedInputFormat;
-import org.bigdata.opennlp.Annotation;
-import org.bigdata.opennlp.AnnotationFactory;
+package org.apache.opennlp.flink.examples.annotation;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import org.apache.flink.api.common.io.DelimitedInputFormat;
 
 /**
  * Borrowed from TextInputFormat

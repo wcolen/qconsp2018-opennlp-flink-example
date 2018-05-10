@@ -1,4 +1,4 @@
-package org.bigdata.opennlp;
+package org.apache.opennlp.flink.examples.functions;
 
 
 import java.util.ArrayList;
@@ -14,6 +14,7 @@ import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
 import org.apache.flink.streaming.connectors.elasticsearch.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch.RequestIndexer;
+import org.apache.opennlp.flink.examples.annotation.Annotation;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.Requests;
 
@@ -72,8 +73,8 @@ public class ESSinkFunction implements ElasticsearchSinkFunction<Annotation> {
     json.put("lang", element.getLanguage());
     json.put("date", element.getProperty("PUBLICATION_DATE"));
     json.put("source", element.getProperty("SOURCE"));
-    json.put("headline", element.getSofa().substring(
-      element.getHeadline().getStart(), element.getHeadline().getEnd()));
+//    json.put("headline", element.getSofa().substring(
+//      element.getHeadline().getStart(), element.getHeadline().getEnd()));
 
     json.put("person", extractMentionKeys(element.getSentences(), element.getPersonMention()));
     json.put("org", extractMentionKeys(element.getSentences(), element.getOrganizationMention()));

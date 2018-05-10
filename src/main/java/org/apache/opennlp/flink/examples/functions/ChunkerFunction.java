@@ -1,7 +1,8 @@
-package org.bigdata.opennlp;
+package org.apache.opennlp.flink.examples.functions;
 
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
+import org.apache.opennlp.flink.examples.annotation.Annotation;
 
 import opennlp.tools.chunker.Chunker;
 import opennlp.tools.chunker.ChunkerME;
@@ -13,7 +14,7 @@ public class ChunkerFunction extends RichMapFunction<Annotation,Annotation> {
   private ChunkerModel model;
   private Chunker chunker;
 
-  ChunkerFunction(ChunkerModel model) {
+  public ChunkerFunction(ChunkerModel model) {
 	this.model = model;
   }
 
