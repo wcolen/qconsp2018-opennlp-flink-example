@@ -1,7 +1,8 @@
-package org.bigdata.opennlp;
+package org.apache.opennlp.flink.examples.functions;
 
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
+import org.apache.opennlp.flink.examples.annotation.Annotation;
 
 import opennlp.tools.postag.POSModel;
 import opennlp.tools.postag.POSTagger;

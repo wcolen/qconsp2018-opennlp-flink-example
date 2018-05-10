@@ -1,30 +1,43 @@
-package org.bigdata.opennlp;
-
-import opennlp.tools.chunker.ChunkerModel;
-import opennlp.tools.namefind.TokenNameFinderModel;
-import opennlp.tools.postag.POSModel;
-import opennlp.tools.sentdetect.SentenceModel;
-import opennlp.tools.tokenize.TokenizerModel;
-import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.examples.news.AnnotationInputFormat;
-import org.apache.flink.examples.news.NewsArticleAnnotationFactory;
-import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
-import org.apache.flink.streaming.api.collector.selector.OutputSelector;
-import org.apache.flink.streaming.api.datastream.DataStream;
-import org.apache.flink.streaming.api.datastream.SplitStream;
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package org.apache.opennlp.flink.examples;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.shaded.guava18.com.google.common.collect.Sets;
+import org.apache.flink.streaming.api.collector.selector.OutputSelector;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.SplitStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.connectors.elasticsearch5.ElasticsearchSink;
+import org.apache.opennlp.flink.examples.annotation.Annotation;
+import org.apache.opennlp.flink.examples.annotation.AnnotationInputFormat;
+import org.apache.opennlp.flink.examples.annotation.SimpleArticleAnnotationFactory;
+import org.apache.opennlp.flink.examples.functions.ChunkerFunction;
+import org.apache.opennlp.flink.examples.functions.ESSinkFunction;
+import org.apache.opennlp.flink.examples.functions.LanguageDetectorFunction;
+import org.apache.opennlp.flink.examples.functions.NameFinderFunction;
+import org.apache.opennlp.flink.examples.functions.POSTaggerFunction;
+import org.apache.opennlp.flink.examples.functions.SentenceDetectorFunction;
+import org.apache.opennlp.flink.examples.functions.TokenizerFunction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import opennlp.tools.chunker.ChunkerModel;
+import opennlp.tools.namefind.TokenNameFinderModel;
+import opennlp.tools.postag.POSModel;
+import opennlp.tools.sentdetect.SentenceModel;
+import opennlp.tools.tokenize.TokenizerModel;
 
 public class NewsPipeline {
 
@@ -45,13 +58,14 @@ public class NewsPipeline {
   private static TokenNameFinderModel porNerPersonModel;
 
   private static void initializeModels() throws IOException {
+    // English Models
     engSentenceModel = new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/en-sent.bin"));
     engTokenizerModel = new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/en-token.bin"));
     engPosModel= new POSModel(NewsPipeline.class.getResource("/opennlp-models/en-pos-perceptron.bin"));
     engChunkModel = new ChunkerModel(NewsPipeline.class.getResource("/opennlp-models/en-chunker.bin"));
     engNerPersonModel = new TokenNameFinderModel(NewsPipeline.class.getResource("/opennlp-models/en-ner.bin"));
 
-    // TODO: we need a portugese model here
+    // Brazilian Portuguese Models
     porSentenceModel = new SentenceModel(NewsPipeline.class.getResource("/opennlp-models/por-sent.bin"));
     porTokenizerModel = new TokenizerModel(NewsPipeline.class.getResource("/opennlp-models/por-token.bin"));
     porPosModel = new POSModel(NewsPipeline.class.getResource("/opennlp-models/por-pos-maxent.bin"));
@@ -66,11 +80,11 @@ public class NewsPipeline {
    */
   public static void main(String[] args) throws Exception {
 
-    LOG.info("Started: " + dtf.format(LocalDateTime.now()));
+    LOG.info("Started: {}", dtf.format(LocalDateTime.now()));
 
     initializeModels();
 
-    LOG.info("Models loaded: " + dtf.format(LocalDateTime.now()));
+    LOG.info("Models loaded: {}", dtf.format(LocalDateTime.now()));
 
     String[] nlpLanguages = new String[] {"eng", "por"};
 
@@ -95,7 +109,8 @@ public class NewsPipeline {
         .collect(Collectors.toList());
 
     DataStream<Annotation> rawStream = env.readFile(
-        new AnnotationInputFormat(NewsArticleAnnotationFactory.getFactory()), parameterTool.getRequired("file"));
+        new AnnotationInputFormat(SimpleArticleAnnotationFactory.getFactory()),
+        parameterTool.getRequired("file"));
 
     // Perform language detection
     SplitStream<Annotation> articleStream = rawStream
